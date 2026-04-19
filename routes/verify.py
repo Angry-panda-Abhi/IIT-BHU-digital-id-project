@@ -196,15 +196,12 @@ def update_photo():
             college=current_app.config["COLLEGE_NAME"],
         )
 
-    # Save the new photo
-    filename = secure_filename(file.filename)
-    unique_name = f"{int(time.time())}_{filename}"
-    upload_dir = current_app.config["UPLOAD_FOLDER"]
-    os.makedirs(upload_dir, exist_ok=True)
-    file.save(os.path.join(upload_dir, unique_name))
+    # Save the new photo (Cloudinary or local)
+    from services.cloud_storage import upload_photo
+    photo_result = upload_photo(file)
 
     # Update the user record — reset all warning state
-    user.photo = unique_name
+    user.photo = photo_result
     user.photo_updated_at = datetime.utcnow()
     user.photo_warning_scans = 0
     db.session.commit()
@@ -252,12 +249,9 @@ def submit_request():
             flash("Invalid file type. Please upload a JPG or PNG photo.", "danger")
             return redirect(url_for("verify.verify", token=token_value, sig=signature))
 
-        # Save with a "pending_" prefix so admin can preview before approving
-        filename    = secure_filename(file.filename)
-        unique_name = f"pending_{int(time.time())}_{filename}"
-        upload_dir  = current_app.config["UPLOAD_FOLDER"]
-        os.makedirs(upload_dir, exist_ok=True)
-        file.save(os.path.join(upload_dir, unique_name))
+        # Save pending photo (Cloudinary or local)
+        from services.cloud_storage import upload_photo
+        unique_name = upload_photo(file)
 
         # Replace any existing pending photo request (student re-submitted)
         existing = UpdateRequest.query.filter_by(

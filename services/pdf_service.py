@@ -80,10 +80,22 @@ def generate_id_card_pdf(user, token) -> bytes:
     photo_w = 16 * mm
     photo_h = 20 * mm
 
-    if user.photo and os.path.exists(os.path.join(current_app.config["UPLOAD_FOLDER"], user.photo)):
+    if user.photo:
         try:
+            if user.photo.startswith("http"):
+                # Cloudinary URL — download into memory
+                import urllib.request
+                photo_data = io.BytesIO(urllib.request.urlopen(user.photo).read())
+                photo_reader = ImageReader(photo_data)
+            else:
+                # Local file
+                local_path = os.path.join(current_app.config["UPLOAD_FOLDER"], user.photo)
+                if not os.path.exists(local_path):
+                    raise FileNotFoundError("Local photo missing")
+                photo_reader = ImageReader(local_path)
+            
             c.drawImage(
-                ImageReader(os.path.join(current_app.config["UPLOAD_FOLDER"], user.photo)),
+                photo_reader,
                 photo_x, photo_y, photo_w, photo_h,
                 preserveAspectRatio=False, mask="auto",
             )

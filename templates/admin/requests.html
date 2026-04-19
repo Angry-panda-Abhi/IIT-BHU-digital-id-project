@@ -65,7 +65,7 @@
                         </td>
                         <td>
                             {% if req.request_type == 'photo' %}
-                                <a href="{{ url_for('static', filename='uploads/' + req.new_value) }}" target="_blank" class="btn btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">View Image</a>
+                                <a href="{{ photo_url(req.new_value) }}" target="_blank" class="btn btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">View Image</a>
                             {% else %}
                                 <strong style="color: var(--text-primary);">{{ req.new_value }}</strong>
                             {% endif %}

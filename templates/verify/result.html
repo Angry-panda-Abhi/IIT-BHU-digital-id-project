@@ -14,7 +14,7 @@
         <!-- Student Photo (Large Rectangular) -->
         <div class="verify-photo-wrapper">
             {% if user.photo %}
-            <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" alt="{{ user.name }}"
+            <img src="{{ photo_url(user.photo) }}" alt="{{ user.name }}"
                 class="verify-photo-rect">
             {% else %}
             <div class="photo-placeholder-rect">👤</div>

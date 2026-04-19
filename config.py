@@ -29,6 +29,9 @@ class Config:
     MAX_CONTENT_LENGTH = 2 * 1024 * 1024  # 2 MB max upload
     ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg"}
 
+    # --- Cloudinary (persistent cloud photo storage) ---
+    CLOUDINARY_URL = os.environ.get("CLOUDINARY_URL", "")
+
     # --- Flask-Mail (console backend for development) ---
     MAIL_SERVER = os.environ.get("MAIL_SERVER", "localhost")
     MAIL_PORT = int(os.environ.get("MAIL_PORT", 587))

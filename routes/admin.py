@@ -65,15 +65,9 @@ def _allowed_file(filename):
 
 
 def _save_photo(file):
-    """Save an uploaded photo and return the filename."""
-    filename = secure_filename(file.filename)
-    # Prevent collisions by prepending a timestamp
-    import time
-    unique = f"{int(time.time())}_{filename}"
-    upload_dir = current_app.config["UPLOAD_FOLDER"]
-    os.makedirs(upload_dir, exist_ok=True)
-    file.save(os.path.join(upload_dir, unique))
-    return unique
+    """Save an uploaded photo and return a URL (Cloudinary) or filename (local)."""
+    from services.cloud_storage import upload_photo
+    return upload_photo(file)
 
 
 # ---------------------------------------------------------------------------

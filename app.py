@@ -22,6 +22,13 @@ def create_app(config_class=Config):
     limiter.init_app(app)
     mail.init_app(app)
 
+    # Initialize Cloudinary if configured
+    if app.config.get("CLOUDINARY_URL"):
+        import cloudinary
+        cloudinary.config(cloudinary_url=app.config["CLOUDINARY_URL"])
+        app.logger.info("☁️ Cloudinary configured for photo storage.")
+
+
     # Register blueprints
     from routes.admin import admin_bp
     from routes.scanner import scanner_bp
@@ -60,6 +67,17 @@ def create_app(config_class=Config):
     def inject_scanner():
         from flask import g
         return dict(active_scanner=getattr(g, 'active_scanner', None))
+
+    @app.context_processor
+    def inject_photo_helper():
+        """Provide a photo_url() helper to all templates."""
+        def photo_url(photo_value):
+            if not photo_value:
+                return None
+            if photo_value.startswith("http"):
+                return photo_value  # Cloudinary URL
+            return url_for('static', filename='uploads/' + photo_value)
+        return dict(photo_url=photo_url)
 
     # Prevent browser back-button from showing cached admin pages after logout
     @app.after_request

@@ -85,7 +85,7 @@
                 <tr>
                     <td>
                         {% if student.photo %}
-                            <img src="{{ url_for('static', filename='uploads/' + student.photo) }}"
+                            <img src="{{ photo_url(student.photo) }}"
                                  alt="{{ student.name }}" class="table-photo">
                         {% else %}
                             <div class="table-photo" style="background: var(--bg-secondary); display:flex; align-items:center; justify-content:center; font-size:0.7rem; color: var(--text-muted);">👤</div>
