@@ -170,10 +170,21 @@ def create_student():
                 errors.append("Invalid Date of Birth format.")
         if not email.lower().endswith("@itbhu.ac.in"):
             errors.append("Only @itbhu.ac.in email addresses are allowed.")
-        if User.query.filter_by(student_id=student_id).first():
-            errors.append("Student ID already exists.")
-        if User.query.filter_by(email=email).first():
-            errors.append("Email already registered.")
+        existing_student = User.query.filter_by(student_id=student_id).first()
+        if existing_student:
+            if existing_student.status == "inactive":
+                db.session.delete(existing_student)
+                db.session.commit()
+            else:
+                errors.append("Student ID already exists.")
+                
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            if existing_email.status == "inactive":
+                db.session.delete(existing_email)
+                db.session.commit()
+            else:
+                errors.append("Email already registered.")
 
         expiry_str = request.form.get("expiry_date", "")
         expiry_date_val = None
