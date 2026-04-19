@@ -21,11 +21,23 @@ def create_app(config_class=Config):
     os.makedirs(os.path.join(app.instance_path), exist_ok=True)
 
     # Initialize extensions
+    from extensions import db, login_manager, limiter, mail, csrf, oauth
+    
     db.init_app(app)
     login_manager.init_app(app)
     limiter.init_app(app)
     mail.init_app(app)
     csrf.init_app(app)
+    oauth.init_app(app)
+
+    # Register Google OAuth Client
+    oauth.register(
+        name='google',
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={
+            'scope': 'openid email profile'
+        }
+    )
 
     # Initialize Cloudinary if configured
     if app.config.get("CLOUDINARY_URL"):

@@ -72,7 +72,6 @@ class User(db.Model):
     # Relationships
     token = db.relationship("Token", backref="user", uselist=False, cascade="all, delete-orphan")
     scan_logs = db.relationship("ScanLog", backref="user", lazy="dynamic", cascade="all, delete-orphan")
-    otp_requests = db.relationship("OTPRequest", backref="user", lazy="dynamic", cascade="all, delete-orphan")
     update_requests = db.relationship("UpdateRequest", backref="user", lazy="dynamic", cascade="all, delete-orphan")
 
     @property
@@ -130,25 +129,6 @@ class ScanLog(db.Model):
 
     def __repr__(self):
         return f"<ScanLog {self.result} @ {self.timestamp}>"
-
-
-class OTPRequest(db.Model):
-    """Time-limited OTP for QR recovery."""
-    __tablename__ = "otp_requests"
-
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    otp_secret = db.Column(db.String(32), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    expires_at = db.Column(db.DateTime, nullable=False)
-    is_used = db.Column(db.Boolean, default=False)
-
-    @property
-    def is_expired(self):
-        return datetime.utcnow() > self.expires_at
-
-    def __repr__(self):
-        return f"<OTPRequest user={self.user_id} used={self.is_used}>"
 
 
 class UpdateRequest(db.Model):

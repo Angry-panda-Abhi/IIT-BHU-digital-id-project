@@ -57,5 +57,9 @@ class Config:
     COLLEGE_NAME = "Indian Institute of Technology, Varanasi"
     COLLEGE_TAGLINE = "Excellence in Innovation"
     BASE_URL = os.environ.get("BASE_URL", "http://127.0.0.1:5000")
-    OTP_EXPIRY_MINUTES = 10
+    
+    # --- Google OAuth ---
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+
     ID_VALIDITY_YEARS = 1

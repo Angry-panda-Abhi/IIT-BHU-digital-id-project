@@ -150,6 +150,7 @@
         {% endif %}
 
         {% if not (current_user.is_authenticated or active_scanner) %}
+        {% if qr_data_uri %}
         <!-- View QR Code -->
         <div style="margin-top: var(--sp-xl); text-align: center; margin-bottom: var(--sp-md);">
             <button onclick="document.getElementById('qr-modal').classList.toggle('d-none')" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); width: 100%; color: white; padding: 12px; font-weight: 600; border-radius: var(--radius-md);">
@@ -164,6 +165,7 @@
                 </div>
             </div>
         </div>
+        {% endif %}
 
         <!-- Student Update Requests -->
         <div class="update-requests-panel"
