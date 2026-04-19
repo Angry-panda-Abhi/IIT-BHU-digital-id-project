@@ -59,7 +59,16 @@ class Config:
     BASE_URL = os.environ.get("BASE_URL", "http://127.0.0.1:5000")
     
     # --- Google OAuth ---
-    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
-    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET")
+    
+    if os.environ.get("FLASK_ENV") == "production":
+        if not GOOGLE_CLIENT_ID:
+            raise RuntimeError("GOOGLE_CLIENT_ID must be set in production environment!")
+        if not GOOGLE_CLIENT_SECRET:
+            raise RuntimeError("GOOGLE_CLIENT_SECRET must be set in production environment!")
+
+    GOOGLE_CLIENT_ID = GOOGLE_CLIENT_ID or ""
+    GOOGLE_CLIENT_SECRET = GOOGLE_CLIENT_SECRET or ""
 
     ID_VALIDITY_YEARS = 1
