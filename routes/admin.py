@@ -463,15 +463,14 @@ def export_scan_logs():
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Headers – now includes Location column
+    # Headers
     writer.writerow([
-        "Serial Number",
         "Student Name", 
         "Roll Number",
         "Branch",
         "Hostel Name",
         "Location",
-        "Timing",
+        "Timing (IST)",
         "Result"
     ])
     
@@ -481,10 +480,10 @@ def export_scan_logs():
         branch = log.user.course if log.user else "Unknown"
         hostel = log.user.hostel_name if log.user and log.user.hostel_name else "N/A"
         location = log.location if log.location else "N/A"
-        timing = log.timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.timestamp else ""
+        from datetime import timedelta
+        timing = (log.timestamp + timedelta(hours=5, minutes=30)).strftime('%d %b %Y, %I:%M:%S %p') if log.timestamp else ""
         
         writer.writerow([
-            log.id,
             name,
             roll,
             branch,

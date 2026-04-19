@@ -33,7 +33,7 @@
         <table id="scan-logs-table">
             <thead>
                 <tr>
-                    <th>S.No</th>
+
                     <th>Student Name</th>
                     <th>Roll Number</th>
                     <th>Branch</th>
@@ -46,7 +46,7 @@
             <tbody>
                 {% for log in logs.items %}
                 <tr>
-                    <td class="text-muted">{{ (logs.page - 1) * logs.per_page + loop.index }}</td>
+
                     <td><strong>{{ log.user.name if log.user else 'Unknown' }}</strong></td>
                     <td><code style="color: var(--accent-light);">{{ log.user.student_id if log.user else 'N/A' }}</code></td>
                     <td>{{ log.user.course if log.user else 'N/A' }}</td>
@@ -58,7 +58,7 @@
                     </td>
                     <td>
                         <span style="font-family: var(--font-mono); font-size: 0.85rem;">
-                            {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {{ log.timestamp|to_ist }}
                         </span>
                     </td>
                     <td>
@@ -69,7 +69,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="8" class="text-center text-muted" style="padding: 48px;">
+                    <td colspan="7" class="text-center text-muted" style="padding: 48px;">
                         No scan logs yet.
                     </td>
                 </tr>

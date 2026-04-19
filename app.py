@@ -98,6 +98,14 @@ def create_app(config_class=Config):
             return url_for('static', filename='uploads/' + photo_value)
         return dict(photo_url=photo_url)
 
+    @app.template_filter('to_ist')
+    def to_ist_filter(dt):
+        """Convert a UTC datetime to IST (UTC+5:30) for display."""
+        from datetime import timedelta
+        if dt is None:
+            return ""
+        return (dt + timedelta(hours=5, minutes=30)).strftime('%d %b %Y, %I:%M:%S %p') + " IST"
+
     # Prevent browser back-button from showing cached admin pages after logout
     @app.after_request
     def add_cache_control(response):
