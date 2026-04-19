@@ -13,7 +13,7 @@
     <div class="landing-actions">
         <a href="{{ url_for('admin.login') }}" class="btn btn-primary btn-lg">🔐 Admin Portal</a>
         <a href="{{ url_for('scanner.login') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #00c853, #00e676); color: #0a0a1a; font-weight: 700;">📡 Scanner Portal</a>
-        <a href="{{ url_for('recovery.request_recovery') }}" class="btn btn-ghost btn-lg">🎓 Student Portal</a>
+        <a href="{{ url_for('recovery.portal') }}" class="btn btn-ghost btn-lg">🎓 Student Portal</a>
     </div>
 </section>
 
@@ -40,8 +40,8 @@
     </div>
     <div class="feature-card">
         <div class="feature-icon">🔄</div>
-        <h3 class="feature-title">Secure Recovery</h3>
-        <p class="feature-desc">OTP-based QR recovery system that prevents unauthorized access to ID credentials.</p>
+        <h3 class="feature-title">Google Sign-In</h3>
+        <p class="feature-desc">Secure OAuth-based login system for students using official @itbhu.ac.in accounts.</p>
     </div>
     <div class="feature-card">
         <div class="feature-icon">📊</div>
