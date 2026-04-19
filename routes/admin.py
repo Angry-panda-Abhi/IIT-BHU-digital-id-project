@@ -606,18 +606,60 @@ def reset_scanner_password(scanner_id):
 @superadmin_required
 def settings():
     if request.method == "POST":
-        if "daa_signature" in request.files:
-            file = request.files["daa_signature"]
-            if file.filename:
-                if _allowed_file(file.filename):
-                    upload_dir = os.path.join(current_app.config["UPLOAD_FOLDER"], "../images")
-                    os.makedirs(upload_dir, exist_ok=True)
-                    # Convert to standard format, here we just save as png
-                    file.save(os.path.join(upload_dir, "daa_signature.png"))
-                    flash("Dean Academic Affairs signature updated.", "success")
+        action = request.form.get("action", "")
+
+        if action == "update_signature":
+            if "daa_signature" in request.files:
+                file = request.files["daa_signature"]
+                if file.filename:
+                    if _allowed_file(file.filename):
+                        upload_dir = os.path.join(current_app.config["UPLOAD_FOLDER"], "../images")
+                        os.makedirs(upload_dir, exist_ok=True)
+                        file.save(os.path.join(upload_dir, "daa_signature.png"))
+                        flash("Dean Academic Affairs signature updated.", "success")
+                    else:
+                        flash("Invalid file format. Use JPG or PNG.", "danger")
+
+        elif action == "update_account":
+            import bcrypt
+            current_pass = request.form.get("current_password", "")
+            new_username = request.form.get("new_username", "").strip()
+            new_pass = request.form.get("new_password", "")
+            confirm_pass = request.form.get("confirm_password", "")
+
+            # Verify current password
+            if not bcrypt.checkpw(current_pass.encode(), current_user.password_hash.encode()):
+                flash("Incorrect current password. Changes denied.", "danger")
+                return redirect(url_for("admin.settings"))
+
+            changes_made = False
+
+            # Update Username
+            if new_username and new_username != current_user.username:
+                from models import Admin
+                if Admin.query.filter_by(username=new_username).first():
+                    flash(f"Username '{new_username}' is already taken.", "danger")
                 else:
-                    flash("Invalid photo format. Use JPG or PNG.", "danger")
+                    current_user.username = new_username
+                    changes_made = True
+
+            # Update Password
+            if new_pass:
+                if new_pass != confirm_pass:
+                    flash("New passwords do not match.", "danger")
+                else:
+                    hashed = bcrypt.hashpw(new_pass.encode(), bcrypt.gensalt()).decode()
+                    current_user.password_hash = hashed
+                    changes_made = True
+
+            if changes_made:
+                db.session.commit()
+                flash("Account settings updated successfully.", "success")
+            else:
+                flash("No changes were made.", "info")
+
         return redirect(url_for("admin.settings"))
+
 
     sig_exists = os.path.exists(os.path.join(current_app.config["UPLOAD_FOLDER"], "../images/daa_signature.png"))
     return render_template("admin/settings.html", sig_exists=sig_exists)
