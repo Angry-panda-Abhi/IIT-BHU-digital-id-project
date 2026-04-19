@@ -79,17 +79,27 @@ def profile():
         session.pop("student_id", None)
         return redirect(url_for("recovery.portal"))
         
+    from services.token_service import get_active_token
+    token_obj = get_active_token(user.id)
+    
+    # Check for pending update requests
+    from models import UpdateRequest
+    pending_photo = UpdateRequest.query.filter_by(user_id=user.id, request_type='photo', status='pending').first()
+    pending_hostel = UpdateRequest.query.filter_by(user_id=user.id, request_type='hostel', status='pending').first()
+
     # Reuse the same ID verification template but pass a flag indicating it's a profile view
     return render_template(
         "verify/result.html",
         user=user,
-        status="active",
+        status=user.effective_status,
         blocked=False,
         anomaly=None,
-        photo_scans_remaining=getattr(user, "photo_warning_scans", 0),  # Example, adjust if needed
+        token=token_obj.token if token_obj else None,
+        sig=token_obj.hmac_signature if token_obj else None,
+        photo_scans_remaining=getattr(user, "photo_warning_scans", 0),
         college=current_app.config["COLLEGE_NAME"],
-        pending_photo=None, # Update Requests could be shown here if needed
-        pending_hostel=None,
+        pending_photo=pending_photo,
+        pending_hostel=pending_hostel,
         is_profile_preview=True
     )
 
