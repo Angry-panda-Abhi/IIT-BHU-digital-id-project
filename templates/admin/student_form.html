@@ -16,6 +16,7 @@
         <form method="POST"
               action="{% if mode == 'create' %}{{ url_for('admin.create_student') }}{% else %}{{ url_for('admin.edit_student', user_id=student.id) }}{% endif %}"
               enctype="multipart/form-data" id="student-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <div class="form-group">
                 <label for="name" class="form-label">Full Name</label>

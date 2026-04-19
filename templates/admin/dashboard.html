@@ -120,16 +120,19 @@
                             <a href="{{ url_for('admin.download_pdf', user_id=student.id) }}"
                                class="btn btn-ghost btn-sm" title="Download ID PDF">📄</a>
                             <form method="POST" action="{{ url_for('admin.email_qr', user_id=student.id) }}" style="display:inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-ghost btn-sm" title="Email QR">📧</button>
                             </form>
                             
                             <form method="POST" action="{{ url_for('admin.regenerate_qr', user_id=student.id) }}" style="display:inline;"
                                   onsubmit="return confirm('Regenerate QR? The old QR will stop working.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-ghost btn-sm" title="Regenerate QR">🔄</button>
                             </form>
                             
                             <form method="POST" action="{{ url_for('admin.delete_student', user_id=student.id) }}" style="display:inline;"
                                   onsubmit="return confirm('Deactivate this student? Their QR will be revoked.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-ghost btn-sm" title="Deactivate" style="color: var(--danger);">🗑️</button>
                             </form>
                         </div>

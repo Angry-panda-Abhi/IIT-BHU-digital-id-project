@@ -19,6 +19,7 @@
     <div class="card mb-xl">
         <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: var(--sp-md);">➕ Create New Scanner</h2>
         <form method="POST" action="{{ url_for('admin.create_scanner') }}" id="create-scanner-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
                 <div class="form-group">
                     <label class="form-label" for="scanner-username">Username</label>
@@ -81,6 +82,7 @@
                             <!-- Reset Password -->
                             <form method="POST" action="{{ url_for('admin.reset_scanner_password', scanner_id=s.id) }}" style="display:inline-flex; gap: 4px; align-items: center;"
                                   onsubmit="if(!this.new_password.value || this.new_password.value.length < 6){alert('Password must be at least 6 characters');return false;}return confirm('Reset password for ' + '{{ s.username }}' + '?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="password" name="new_password" placeholder="New password" 
                                        class="form-input" style="padding: 4px 10px; font-size: 0.8rem; width: 130px; min-width: 100px;" minlength="6">
                                 <button type="submit" class="btn btn-ghost btn-sm" title="Reset Password" style="color: var(--info);">🔑</button>
@@ -88,6 +90,7 @@
                             <!-- Delete -->
                             <form method="POST" action="{{ url_for('admin.delete_scanner', scanner_id=s.id) }}" style="display:inline;"
                                   onsubmit="return confirm('Delete scanner account {{ s.username }}? This cannot be undone.');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-ghost btn-sm" title="Delete Scanner" style="color: var(--danger);">🗑️</button>
                             </form>
                         </div>

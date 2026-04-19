@@ -12,6 +12,7 @@
 
     <div class="card">
         <form method="POST" action="{{ url_for('recovery.request_recovery') }}" id="recovery-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="identifier" class="form-label">Student ID or Email</label>
                 <input type="text" id="identifier" name="identifier" class="form-input"

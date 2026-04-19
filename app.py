@@ -3,9 +3,13 @@ Flask application factory.
 """
 import os
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()  # Load environment variables from .env file
+
 from flask import Flask, render_template, url_for
 from config import Config
-from extensions import db, login_manager, limiter, mail
+from extensions import db, login_manager, limiter, mail, csrf
 
 
 def create_app(config_class=Config):
@@ -21,6 +25,7 @@ def create_app(config_class=Config):
     login_manager.init_app(app)
     limiter.init_app(app)
     mail.init_app(app)
+    csrf.init_app(app)
 
     # Initialize Cloudinary if configured
     if app.config.get("CLOUDINARY_URL"):
@@ -110,13 +115,13 @@ def create_app(config_class=Config):
         if not Admin.query.first():
             import bcrypt
             print("🌱 Seeding default admin account...")
-            # Default password for initial setup
-            password = "SecureAdmin@2026"
+            # Use environment variable for initial password, fallback to default
+            password = os.environ.get("INITIAL_ADMIN_PASSWORD", "SecureAdmin@2026")
             hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
             admin = Admin(username="admin", password_hash=hashed)
             db.session.add(admin)
             db.session.commit()
-            print("✅ Default admin created successfully.")
+            print(f"✅ Default admin 'admin' created. Password: {'[REDACTED]' if os.environ.get('INITIAL_ADMIN_PASSWORD') else password}")
 
 
     # Logging

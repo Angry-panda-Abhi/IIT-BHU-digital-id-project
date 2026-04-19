@@ -13,6 +13,7 @@
 
     <div class="card">
         <form method="POST" action="{{ url_for('scanner.login') }}" id="scanner-login-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="form-group">
                 <label for="username" class="form-label">Scanner Username</label>
                 <input type="text" id="username" name="username" class="form-input"

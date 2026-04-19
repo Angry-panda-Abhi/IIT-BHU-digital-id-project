@@ -193,6 +193,7 @@
                     <form id="photo-req-form" method="POST" action="{{ url_for('verify.submit_request') }}"
                         enctype="multipart/form-data" class="d-none"
                         style="margin-top: var(--sp-sm); padding-top: var(--sp-sm); border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="token" value="{{ token }}">
                         <input type="hidden" name="sig" value="{{ sig }}">
                         <input type="hidden" name="request_type" value="photo">
@@ -224,6 +225,7 @@
                     <form id="hostel-req-form" method="POST" action="{{ url_for('verify.submit_request') }}"
                         class="d-none"
                         style="margin-top: var(--sp-sm); padding-top: var(--sp-sm); border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="token" value="{{ token }}">
                         <input type="hidden" name="sig" value="{{ sig }}">
                         <input type="hidden" name="request_type" value="hostel">

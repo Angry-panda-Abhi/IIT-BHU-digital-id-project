@@ -49,6 +49,7 @@
         <!-- Upload form -->
         <form method="POST" action="{{ url_for('verify.update_photo') }}"
               enctype="multipart/form-data" class="photo-update-form" id="photo-upload-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <!-- Hidden auth fields — proves this upload is for the correct token -->
             <input type="hidden" name="token" value="{{ token }}">

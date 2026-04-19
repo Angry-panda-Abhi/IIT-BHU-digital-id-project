@@ -16,6 +16,7 @@
         <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: var(--sp-md);">🖋️ ID Card Configuration</h2>
         
         <form method="POST" action="{{ url_for('admin.settings') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="update_signature">
             <div class="form-group">
                 <label class="form-label">Dean Academic Affairs Signature</label>
@@ -52,6 +53,7 @@
         </p>
 
         <form method="POST" action="{{ url_for('admin.settings') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="action" value="update_account">
             
             <div class="form-group">

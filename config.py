@@ -9,7 +9,11 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     # --- Core Flask ---
-    SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-in-production-2026")
+    # In production, these MUST be set in the .env file.
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    if not SECRET_KEY and os.environ.get("FLASK_ENV") == "production":
+        raise RuntimeError("SECRET_KEY must be set in production environment!")
+    SECRET_KEY = SECRET_KEY or "dev-insecure-key-12345"
     
     # Handle DB URL for production (Postgres) and local (SQLite)
     _db_url = os.environ.get("DATABASE_URL")
@@ -21,7 +25,10 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # --- HMAC Token Signing ---
-    HMAC_SECRET = os.environ.get("HMAC_SECRET", "hmac-secret-key-change-in-production")
+    HMAC_SECRET = os.environ.get("HMAC_SECRET")
+    if not HMAC_SECRET and os.environ.get("FLASK_ENV") == "production":
+        raise RuntimeError("HMAC_SECRET must be set in production environment!")
+    HMAC_SECRET = HMAC_SECRET or "dev-insecure-hmac-54321"
 
 
     # --- File Uploads ---

@@ -7,6 +7,7 @@ from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_mail import Mail
+from flask_wtf.csrf import CSRFProtect
 
 db = SQLAlchemy()
 
@@ -20,3 +21,4 @@ limiter = Limiter(
 )
 
 mail = Mail()
+csrf = CSRFProtect()

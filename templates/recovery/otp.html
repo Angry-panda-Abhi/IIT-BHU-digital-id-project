@@ -42,6 +42,7 @@
 
     <div class="card">
         <form method="POST" action="{{ url_for('recovery.verify_otp') }}" id="otp-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="otp-input-group" id="otp-group">
                 <input type="text" maxlength="1" class="otp-digit" data-index="0" autocomplete="off" inputmode="numeric">
                 <input type="text" maxlength="1" class="otp-digit" data-index="1" autocomplete="off" inputmode="numeric">
