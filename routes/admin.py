@@ -174,14 +174,8 @@ def create_student():
             existing_student = User.query.filter_by(student_id=student_id).first()
             if existing_student:
                 if existing_student.status == "inactive":
-                    for log in existing_student.scan_logs.all():
-                        log.user_id = None
-                    for req in existing_student.update_requests.all():
-                        db.session.delete(req)
-                    if existing_student.token:
-                        db.session.delete(existing_student.token)
-                        existing_student.token = None
-                    db.session.delete(existing_student)
+                    existing_student.student_id = f"del_id_{existing_student.id}"
+                    existing_student.email = f"del_e_{existing_student.id}@itbhu.ac.in"
                     db.session.commit()
                 else:
                     errors.append("Student ID already exists.")
@@ -189,21 +183,15 @@ def create_student():
             existing_email = User.query.filter_by(email=email).first()
             if existing_email:
                 if existing_email.status == "inactive":
-                    for log in existing_email.scan_logs.all():
-                        log.user_id = None
-                    for req in existing_email.update_requests.all():
-                        db.session.delete(req)
-                    if existing_email.token:
-                        db.session.delete(existing_email.token)
-                        existing_email.token = None
-                    db.session.delete(existing_email)
+                    existing_email.student_id = f"del_id_{existing_email.id}"
+                    existing_email.email = f"del_e_{existing_email.id}@itbhu.ac.in"
                     db.session.commit()
                 else:
                     errors.append("Email already registered.")
         except Exception as cleanup_error:
             db.session.rollback()
             current_app.logger.error(f"Cleanup Error: {cleanup_error}")
-            errors.append(f"System Error during cleanup: {cleanup_error.__class__.__name__}")
+            errors.append(f"System Error during cleanup: {cleanup_error.__class__.__name__}: {str(cleanup_error)[:150]}")
 
         expiry_str = request.form.get("expiry_date", "")
         expiry_date_val = None
@@ -371,21 +359,18 @@ def edit_student(user_id):
 def delete_student(user_id):
     user = User.query.get_or_404(user_id)
     
-    # Unlink relationships directly via session to prevent ORM cascade tracking errors and Postgres constraint failures
-    for log in user.scan_logs.all():
-        log.user_id = None
-    for req in user.update_requests.all():
-        db.session.delete(req)
+    # Soft archive the user to sidestep Postgres foreign key and NOT NULL strict constraints.
+    # We guarantee it fits in String(20) by using their unique primary key ID.
+    user.status = "inactive"
+    user.student_id = f"del_id_{user.id}"
+    user.email = f"del_e_{user.id}@itbhu.ac.in"
+    
     if user.token:
-        db.session.delete(user.token)
-        user.token = None
+        user.token.is_revoked = True
         
-    # Hard delete the user so their email and roll number (student_id)
-    # are completely freed up and can be registered again.
-    db.session.delete(user)
     db.session.commit()
     
-    flash(f"Student {user.name} permanently deleted.", "warning")
+    flash(f"Student {user.name} removed and archived.", "warning")
     return redirect(url_for("admin.dashboard"))
 
 
