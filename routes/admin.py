@@ -173,6 +173,10 @@ def create_student():
         existing_student = User.query.filter_by(student_id=student_id).first()
         if existing_student:
             if existing_student.status == "inactive":
+                if existing_student.token:
+                    db.session.delete(existing_student.token)
+                ScanLog.query.filter_by(user_id=existing_student.id).delete()
+                UpdateRequest.query.filter_by(user_id=existing_student.id).delete()
                 db.session.delete(existing_student)
                 db.session.commit()
             else:
@@ -181,6 +185,10 @@ def create_student():
         existing_email = User.query.filter_by(email=email).first()
         if existing_email:
             if existing_email.status == "inactive":
+                if existing_email.token:
+                    db.session.delete(existing_email.token)
+                ScanLog.query.filter_by(user_id=existing_email.id).delete()
+                UpdateRequest.query.filter_by(user_id=existing_email.id).delete()
                 db.session.delete(existing_email)
                 db.session.commit()
             else:
@@ -344,6 +352,12 @@ def edit_student(user_id):
 @superadmin_required
 def delete_student(user_id):
     user = User.query.get_or_404(user_id)
+    
+    # Postgres lacks ON DELETE CASCADE schema constraints for these; manually remove
+    if user.token:
+        db.session.delete(user.token)
+    ScanLog.query.filter_by(user_id=user.id).delete()
+    UpdateRequest.query.filter_by(user_id=user.id).delete()
     
     # Hard delete the user so their email and roll number (student_id)
     # are completely freed up and can be registered again.
