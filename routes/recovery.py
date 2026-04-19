@@ -80,6 +80,7 @@ def profile():
         return redirect(url_for("recovery.portal"))
         
     from services.token_service import get_active_token
+    from services.qr_service import generate_qr_base64
     token_obj = get_active_token(user.id)
     
     # Check for pending update requests
@@ -96,6 +97,7 @@ def profile():
         anomaly=None,
         token=token_obj.token if token_obj else None,
         sig=token_obj.hmac_signature if token_obj else None,
+        qr_data_uri=generate_qr_base64(token_obj.token, token_obj.hmac_signature) if token_obj else None,
         photo_scans_remaining=getattr(user, "photo_warning_scans", 0),
         college=current_app.config["COLLEGE_NAME"],
         pending_photo=pending_photo,

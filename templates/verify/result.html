@@ -165,19 +165,21 @@
         {% if not (current_user.is_authenticated or active_scanner) %}
         {% if qr_data_uri %}
         <!-- View QR Code -->
-        <div style="margin-top: var(--sp-xl); text-align: center; margin-bottom: var(--sp-md);">
-            <button onclick="document.getElementById('qr-modal').classList.toggle('d-none')" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); width: 100%; color: white; padding: 12px; font-weight: 600; border-radius: var(--radius-md);">
-                👁️ Show My Live QR Code
+        <div style="margin-top: var(--sp-lg); text-align: center; margin-bottom: var(--sp-md);">
+            <button onclick="document.getElementById('qr-modal').classList.toggle('d-none')" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 700; border-radius: var(--radius-md); background: linear-gradient(135deg, var(--primary), #5c6bc0); box-shadow: 0 4px 15px rgba(63, 81, 181, 0.3);">
+                📱 Show My Live QR Code
             </button>
             
-            <div id="qr-modal" class="d-none fade-in" style="margin-top: var(--sp-md); background: white; padding: var(--sp-lg); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-                <img src="{{ qr_data_uri }}" alt="Your Secure QR Code" style="width: 220px; height: 220px; display: block; margin: 0 auto; border-radius: 8px;">
-                <p style="color: #333; font-size: 0.85rem; margin-top: 16px; font-weight: 600;">Scan this at campus gates and facilities.</p>
-                <div style="margin-top: 12px; font-size: 0.75rem; color: #666; background: rgba(230,81,0,0.1); padding: 8px; border-radius: 4px; border: 1px dashed rgba(230,81,0,0.3);">
-                    ⚠️ Do not share your QR code. It is uniquely linked to your identity.
+            <div id="qr-modal" class="d-none fade-in" style="margin-top: var(--sp-md); background: white; padding: var(--sp-lg); border-radius: var(--radius-lg); box-shadow: 0 12px 40px rgba(0,0,0,0.4); border: 1px solid rgba(0,0,0,0.05);">
+                <img src="{{ qr_data_uri }}" alt="Your Secure QR Code" style="width: 240px; height: 240px; display: block; margin: 0 auto; border-radius: 12px; border: 8px solid #f8f9fa;">
+                <p style="color: #1a1a1a; font-size: 0.9rem; margin-top: 16px; font-weight: 700;">Your Security Token</p>
+                <p style="color: #666; font-size: 0.75rem; margin-top: 4px;">Scan at gates and facilities for access.</p>
+                <div style="margin-top: 16px; font-size: 0.75rem; color: #d32f2f; background: #fff5f5; padding: 10px; border-radius: 8px; border: 1px solid #ffeaea; font-weight: 600;">
+                    ⚠️ Do NOT share screenshots of this QR code. It is uniquely linked to your student identity.
                 </div>
             </div>
         </div>
+        {% endif %}
         {% endif %}
 
         <!-- Student Update Requests -->
