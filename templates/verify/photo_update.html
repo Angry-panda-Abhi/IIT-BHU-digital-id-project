@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}Photo Update Required{% endblock %}
+
+{% block content %}
+<div class="photo-update-container fade-in">
+    <div class="photo-update-card">
+
+        <!-- Top accent bar -->
+        <div class="photo-update-top-bar"></div>
+
+        <!-- College tag -->
+        <div class="verify-header" style="margin-bottom: var(--sp-md);">
+            <span class="verify-college-tag">🛡️ {{ college }}</span>
+        </div>
+
+        <!-- Icon -->
+        <div class="photo-update-icon-wrap">
+            <span class="photo-update-icon">📷</span>
+        </div>
+
+        <!-- Heading -->
+        <h1 class="photo-update-title">
+            {% if no_photo %}
+                Profile Photo Required
+            {% else %}
+                Photo Update Required
+            {% endif %}
+        </h1>
+
+        <!-- Sub-message -->
+        <p class="photo-update-subtitle">
+            {% if no_photo %}
+                This student record has no photo on file.<br>
+                A current photo must be uploaded before the ID details can be displayed.
+            {% else %}
+                The profile photo on this ID card is more than 6 months old.<br>
+                Please upload an updated photo to continue.
+            {% endif %}
+        </p>
+
+        <!-- Error message (if any) -->
+        {% if upload_error %}
+        <div class="photo-update-error">
+            ❌ {{ upload_error }}
+        </div>
+        {% endif %}
+
+        <!-- Upload form -->
+        <form method="POST" action="{{ url_for('verify.update_photo') }}"
+              enctype="multipart/form-data" class="photo-update-form" id="photo-upload-form">
+
+            <!-- Hidden auth fields — proves this upload is for the correct token -->
+            <input type="hidden" name="token" value="{{ token }}">
+            <input type="hidden" name="sig"   value="{{ sig }}">
+
+            <!-- Drop zone / file picker -->
+            <label class="photo-dropzone" for="photo-file-input" id="photo-dropzone">
+                <!-- Preview area (hidden until file chosen) -->
+                <img id="photo-preview" class="photo-preview-img" src="" alt="Preview" style="display:none;">
+
+                <!-- Placeholder icon + text -->
+                <div id="photo-dropzone-placeholder">
+                    <span class="photo-dropzone-icon">🖼️</span>
+                    <span class="photo-dropzone-text">Click to choose a photo</span>
+                    <span class="photo-dropzone-hint">JPG or PNG · Max 2 MB</span>
+                </div>
+
+                <input type="file" id="photo-file-input" name="photo"
+                       accept=".jpg,.jpeg,.png" required style="display:none;">
+            </label>
+
+            <!-- Submit -->
+            <button type="submit" class="btn btn-primary photo-update-submit" id="photo-submit-btn" disabled>
+                <span id="submit-text">📤 Upload Photo</span>
+            </button>
+        </form>
+
+        <!-- Footer note -->
+        <p class="photo-update-note">
+            Your QR code remains the same — only the photo on record changes.<br>
+            Contact administration if you encounter any issues.
+        </p>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const input       = document.getElementById('photo-file-input');
+    const dropzone    = document.getElementById('photo-dropzone');
+    const placeholder = document.getElementById('photo-dropzone-placeholder');
+    const preview     = document.getElementById('photo-preview');
+    const submitBtn   = document.getElementById('photo-submit-btn');
+    const submitText  = document.getElementById('submit-text');
+
+    // Click on drop zone opens file picker
+    dropzone.addEventListener('click', () => input.click());
+
+    // Prevent click bubbling from the preview image triggering double-open
+    preview.addEventListener('click', (e) => e.stopPropagation());
+
+    input.addEventListener('change', function () {
+        if (!this.files || !this.files[0]) return;
+
+        const file = this.files[0];
+        const maxSize = 2 * 1024 * 1024; // 2 MB
+
+        if (file.size > maxSize) {
+            alert('File is too large. Please choose a photo under 2 MB.');
+            this.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            placeholder.style.display = 'none';
+            dropzone.classList.add('dropzone-has-image');
+            submitBtn.disabled = false;
+            submitText.textContent = '📤 Upload Photo';
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Drag-and-drop support
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.classList.add('dropzone-drag');
+    });
+    dropzone.addEventListener('dragleave', () => {
+        dropzone.classList.remove('dropzone-drag');
+    });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('dropzone-drag');
+        const dt = e.dataTransfer;
+        if (dt && dt.files.length) {
+            input.files = dt.files;
+            input.dispatchEvent(new Event('change'));
+        }
+    });
+
+    // Show spinner on submit
+    document.getElementById('photo-upload-form').addEventListener('submit', function () {
+        submitBtn.disabled = true;
+        submitText.textContent = '⏳ Uploading…';
+    });
+})();
+</script>
+{% endblock %}

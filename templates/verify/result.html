@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block title %}Identity Verified{% endblock %}
+
+{% block content %}
+<div class="verify-container fade-in">
+    <div class="verify-card {% if blocked %}status-{{ status }}{% else %}status-active{% endif %}">
+
+        <!-- College Branding -->
+        <div class="verify-header">
+            <span class="verify-college-tag"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="" style="height: 14px; width: auto; vertical-align: middle; margin-right: 4px;"> {{ college }}</span>
+        </div>
+
+        <!-- Student Photo (Large Rectangular) -->
+        <div class="verify-photo-wrapper">
+            {% if user.photo %}
+            <img src="{{ url_for('static', filename='uploads/' + user.photo) }}" alt="{{ user.name }}"
+                class="verify-photo-rect">
+            {% else %}
+            <div class="photo-placeholder-rect">👤</div>
+            {% endif %}
+        </div>
+
+        <!-- Student Name -->
+        <h1 class="verify-name-lg">{{ user.name }}</h1>
+
+        <!-- Status Badge -->
+        <div class="verify-status verify-status-{{ status }}">
+            {% if status == 'active' %}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="2" />
+                <path d="M5 8L7 10L11 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round" />
+            </svg>
+            VERIFIED — ACTIVE
+            {% elif status == 'expired' %}
+            ✕ EXPIRED
+            {% else %}
+            ⊘ INACTIVE
+            {% endif %}
+        </div>
+
+        {% if photo_scans_remaining and photo_scans_remaining > 0 %}
+        <div class="photo-age-warning">
+            <span class="photo-age-warning-icon">📷</span>
+            <div class="photo-age-warning-body">
+                <strong>Profile photo is outdated.</strong>
+                Please update your photo.
+                <span class="photo-age-countdown">
+                    {{ photo_scans_remaining }} scan{{ 's' if photo_scans_remaining != 1 else '' }} remaining
+                    before mandatory update.
+                </span>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if blocked %}
+        <div class="verify-blocked-msg">
+            <p>
+                {% if status == 'expired' %}
+                ⚠️ This ID card has expired on {{ user.expiry_date.strftime('%d %b %Y') }}.
+                Please contact administration for renewal.
+                {% else %}
+                ⚠️ This ID card has been deactivated.
+                Please contact administration.
+                {% endif %}
+            </p>
+        </div>
+        {% else %}
+        <!-- Student Details -->
+        <div class="verify-details-grid">
+
+            <div class="verify-info-card">
+                <div class="verify-info-icon">📋</div>
+                <div class="verify-info-content">
+                    <span class="verify-info-label">Roll Number</span>
+                    <span class="verify-info-value">{{ user.student_id }}</span>
+                </div>
+            </div>
+
+            <div class="verify-info-card">
+                <div class="verify-info-icon">🎓</div>
+                <div class="verify-info-content">
+                    <span class="verify-info-label">Course & Department</span>
+                    <span class="verify-info-value">{{ user.course|upper }}{% if user.department %} — {{
+                        user.department|upper }}{% endif %}</span>
+                </div>
+            </div>
+
+            {% if user.hostel_name %}
+            <div class="verify-info-card">
+                <div class="verify-info-icon">🏠</div>
+                <div class="verify-info-content">
+                    <span class="verify-info-label">Hostel</span>
+                    <span class="verify-info-value">{{ user.hostel_name }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user.aadhar_number %}
+            <div class="verify-info-card">
+                <div class="verify-info-icon">🪪</div>
+                <div class="verify-info-content">
+                    <span class="verify-info-label">Aadhar Number</span>
+                    <span class="verify-info-value verify-info-mono">XXXX XXXX X{{ user.aadhar_number[-3:] }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user.contact_number %}
+            <div class="verify-info-card">
+                <div class="verify-info-icon">📞</div>
+                <div class="verify-info-content">
+                    <span class="verify-info-label">Contact Number</span>
+                    <span class="verify-info-value">{{ user.contact_number }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if user.home_address %}
+            <div class="verify-info-card verify-info-card-full">
+                <div class="verify-info-icon">📍</div>
+                <div class="verify-info-content">
+                    <span class="verify-info-label">Home Address</span>
+                    <span class="verify-info-value verify-info-address">{{ user.home_address }}</span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Verified Badge -->
+        <div class="verify-badge">
+            <span class="checkmark">✓</span>
+            <span>Identity verified via official {{ college }} system</span>
+        </div>
+
+        <!-- Expiry Info -->
+        <div class="verify-expiry">
+            Valid until <strong>{{ user.expiry_date.strftime('%d %b %Y') }}</strong>
+        </div>
+
+        <!-- Anomaly Warning -->
+        {% if anomaly and anomaly.is_suspicious %}
+        <div class="anomaly-warning">
+            ⚠️ <strong>Suspicious activity detected:</strong>
+            This QR code has been scanned {{ anomaly.scan_count_5min }} times in the last 5 minutes
+            from {{ anomaly.unique_ip_count }} different locations.
+        </div>
+        {% endif %}
+        {% endif %}
+
+        {% if not (current_user.is_authenticated or active_scanner) %}
+        <!-- View QR Code -->
+        <div style="margin-top: var(--sp-xl); text-align: center; margin-bottom: var(--sp-md);">
+            <button onclick="document.getElementById('qr-modal').classList.toggle('d-none')" class="btn" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); width: 100%; color: white; padding: 12px; font-weight: 600; border-radius: var(--radius-md);">
+                👁️ Show My Live QR Code
+            </button>
+            
+            <div id="qr-modal" class="d-none fade-in" style="margin-top: var(--sp-md); background: white; padding: var(--sp-lg); border-radius: var(--radius-lg); box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+                <img src="{{ qr_data_uri }}" alt="Your Secure QR Code" style="width: 220px; height: 220px; display: block; margin: 0 auto; border-radius: 8px;">
+                <p style="color: #333; font-size: 0.85rem; margin-top: 16px; font-weight: 600;">Scan this at campus gates and facilities.</p>
+                <div style="margin-top: 12px; font-size: 0.75rem; color: #666; background: rgba(230,81,0,0.1); padding: 8px; border-radius: 4px; border: 1px dashed rgba(230,81,0,0.3);">
+                    ⚠️ Do not share your QR code. It is uniquely linked to your identity.
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Update Requests -->
+        <div class="update-requests-panel"
+            style="margin-top: var(--sp-lg); background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-lg); padding: var(--sp-md);">
+            <h4 style="font-size: 0.95rem; margin-bottom: var(--sp-sm); color: var(--text-secondary);">📝 Profile Update
+                Requests</h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: var(--sp-md);">
+                Submit change requests to the admin. Changes apply after approval.
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: var(--sp-sm);">
+                <!-- Photo Request -->
+                <div
+                    style="background: rgba(0,0,0,0.2); padding: var(--sp-sm) var(--sp-md); border-radius: var(--radius-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.85rem; font-weight: 500;">Profile Photo</span>
+                        {% if pending_photo %}
+                        <span class="badge"
+                            style="background: rgba(230,81,0,0.2); color: var(--warning); border: 1px solid rgba(230,81,0,0.3); font-size: 0.7rem;">⏳
+                            Pending Review</span>
+                        {% else %}
+                        <button onclick="document.getElementById('photo-req-form').classList.toggle('d-none')"
+                            class="btn btn-sm" style="font-size: 0.75rem; padding: 4px 8px;">Request Change</button>
+                        {% endif %}
+                    </div>
+                    {% if not pending_photo %}
+                    <form id="photo-req-form" method="POST" action="{{ url_for('verify.submit_request') }}"
+                        enctype="multipart/form-data" class="d-none"
+                        style="margin-top: var(--sp-sm); padding-top: var(--sp-sm); border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <input type="hidden" name="token" value="{{ token }}">
+                        <input type="hidden" name="sig" value="{{ sig }}">
+                        <input type="hidden" name="request_type" value="photo">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="file" name="photo" accept=".png, .jpg, .jpeg" required
+                                style="font-size: 0.75rem; width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 4px; border-radius: 4px;">
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                style="padding: 4px 12px; font-size: 0.75rem;">Submit</button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+
+                <!-- Hostel Request -->
+                <div
+                    style="background: rgba(0,0,0,0.2); padding: var(--sp-sm) var(--sp-md); border-radius: var(--radius-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.85rem; font-weight: 500;">Hostel Name</span>
+                        {% if pending_hostel %}
+                        <span class="badge"
+                            style="background: rgba(230,81,0,0.2); color: var(--warning); border: 1px solid rgba(230,81,0,0.3); font-size: 0.7rem;">⏳
+                            Pending Review</span>
+                        {% else %}
+                        <button onclick="document.getElementById('hostel-req-form').classList.toggle('d-none')"
+                            class="btn btn-sm" style="font-size: 0.75rem; padding: 4px 8px;">Request Change</button>
+                        {% endif %}
+                    </div>
+                    {% if not pending_hostel %}
+                    <form id="hostel-req-form" method="POST" action="{{ url_for('verify.submit_request') }}"
+                        class="d-none"
+                        style="margin-top: var(--sp-sm); padding-top: var(--sp-sm); border-top: 1px dashed rgba(255,255,255,0.1);">
+                        <input type="hidden" name="token" value="{{ token }}">
+                        <input type="hidden" name="sig" value="{{ sig }}">
+                        <input type="hidden" name="request_type" value="hostel">
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" name="new_value" placeholder="Enter new hostel name" required
+                                style="background: transparent; color: white; font-size: 0.8rem; width: 100%; border: 1px solid rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; outline: none;">
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                style="padding: 4px 12px; font-size: 0.75rem;">Submit</button>
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if (current_user.is_authenticated or active_scanner) and not is_profile_preview %}
+        <div style="margin-top: 32px; margin-bottom: 24px; text-align: center;">
+            <a href="{% if request.args.get('source') == 'admin' %}{{ url_for('admin.scanner') }}{% else %}{{ url_for('scanner.scan') }}{% endif %}"
+                class="btn btn-primary"
+                style="background: var(--success); width: 100%; border-radius: 8px; padding: 12px; font-weight: 700;">
+                📷 Scan Another QR
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Timestamp -->
+        <div class="verify-timestamp" id="verify-timestamp"></div>
+
+        <!-- College Footer -->
+        <div class="verify-college" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <img src="{{ url_for('static', filename='images/logo.png') }}" alt="" style="height: 16px; width: auto;">
+            <span>IIT BHU Digital ID</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/verify.js') }}"></script>
+{% endblock %}

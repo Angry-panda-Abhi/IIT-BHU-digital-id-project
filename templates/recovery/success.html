@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}QR Code Recovered{% endblock %}
+
+{% block content %}
+<div class="recovery-container fade-in text-center">
+    <div class="mb-xl">
+        <div style="font-size: 2.5rem; margin-bottom: var(--sp-md);">🎉</div>
+        <h1 style="font-size: 1.5rem; font-weight: 800;">QR Code Recovered!</h1>
+        <p class="text-muted mt-sm">Your secure digital ID QR code is shown below</p>
+    </div>
+
+    <div class="card">
+        <!-- Student Info -->
+        <p style="font-weight: 600; font-size: 1.1rem;">{{ user.name }}</p>
+        <p class="text-muted" style="font-size: 0.9rem;">{{ user.course }}{% if user.department %} - {{ user.department }}{% endif %}</p>
+        <p class="text-muted mt-sm" style="font-size: 0.85rem;">
+            Student ID: <code style="color: var(--accent-light);">{{ user.student_id }}</code>
+        </p>
+
+        <!-- QR Code -->
+        <div class="qr-display">
+            <img src="{{ qr_data_uri }}" alt="Your QR Code" style="width: 220px; height: 220px;">
+        </div>
+
+        <p class="text-muted" style="font-size: 0.8rem;">
+            📸 Screenshot or save this QR code.<br>
+            ⚠️ Do not share it with anyone — it is uniquely linked to your identity.
+        </p>
+
+        <div class="mt-lg">
+            <span class="badge badge-active" style="font-size: 0.8rem; padding: 6px 16px;">
+                ● Valid until {{ user.expiry_date.strftime('%d %b %Y') }}
+            </span>
+        </div>
+    </div>
+
+    <!-- View ID Card / Photo Update entry point -->
+    <div class="card mt-lg" style="border-color: rgba(67,45,109,0.25);">
+        <p style="font-weight: 600; font-size: 1rem; margin-bottom: var(--sp-sm);">👤 View Your Digital ID Card</p>
+        <p class="text-muted" style="font-size: 0.82rem; margin-bottom: var(--sp-md);">
+            Opens your live ID card — checks photo status, shows your full profile,
+            and lets you update your photo if needed.
+        </p>
+        <a href="{{ url_for('verify.verify', token=token_str, sig=sig) }}"
+           class="btn btn-primary"
+           style="width: 100%; justify-content: center; padding: 13px; font-size: 0.95rem;">
+            🪪 Open My ID Card
+        </a>
+    </div>
+
+    <div class="mt-xl">
+        <a href="{{ url_for('index') }}" class="btn btn-ghost">← Back to Home</a>
+    </div>
+</div>
+{% endblock %}
+

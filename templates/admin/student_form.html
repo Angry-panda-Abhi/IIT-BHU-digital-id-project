@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}{% if mode == 'create' %}New Student{% else %}Edit Student{% endif %}{% endblock %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 600px; margin: 0 auto;">
+    <div class="mb-xl">
+        <a href="{{ url_for('admin.dashboard') }}" class="text-muted" style="font-size: 0.9rem;">← Back to Dashboard</a>
+        <h1 style="font-size: 1.5rem; font-weight: 800; margin-top: var(--sp-sm);">
+            {% if mode == 'create' %}➕ Register New Student{% else %}✏️ Edit Student{% endif %}
+        </h1>
+    </div>
+
+    <div class="card">
+        <form method="POST"
+              action="{% if mode == 'create' %}{{ url_for('admin.create_student') }}{% else %}{{ url_for('admin.edit_student', user_id=student.id) }}{% endif %}"
+              enctype="multipart/form-data" id="student-form">
+
+            <div class="form-group">
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" id="name" name="name" class="form-input"
+                       value="{{ student.name if student else '' }}"
+                       placeholder="e.g. Aarav Sharma" required>
+            </div>
+
+            <div class="form-group">
+                <label for="student_id" class="form-label">Student ID (Roll Number)</label>
+                <input type="text" id="student_id" name="student_id" class="form-input"
+                       value="{{ student.student_id if student else '' }}"
+                       placeholder="e.g. NGU2026001" required>
+            </div>
+
+            <div class="form-group">
+                <label for="course" class="form-label">Course / Program</label>
+                <input type="text" id="course" name="course" class="form-input"
+                       value="{{ student.course if student else '' }}"
+                       placeholder="e.g. B.Tech" required>
+            </div>
+
+            <div class="form-group">
+                <label for="department" class="form-label">Department</label>
+                <input type="text" id="department" name="department" class="form-input"
+                       value="{{ student.department if student else '' }}"
+                       placeholder="e.g. Computer Science" required>
+            </div>
+
+            <div class="form-group">
+                <label for="dob" class="form-label">Date of Birth</label>
+                <input type="date" id="dob" name="dob" class="form-input"
+                       value="{{ student.dob.isoformat() if student and student.dob else '' }}">
+            </div>
+
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input type="email" id="email" name="email" class="form-input"
+                       value="{{ student.email if student else '' }}"
+                       placeholder="e.g. aarav@itbhu.ac.in" required>
+            </div>
+
+            <div class="form-group">
+                <label for="aadhar_number" class="form-label">Aadhar Number</label>
+                <input type="text" id="aadhar_number" name="aadhar_number" class="form-input"
+                       value="{{ student.aadhar_number if student else '' }}"
+                       placeholder="e.g. 1234 5678 9012" maxlength="14"
+                       pattern="\d{4}\s?\d{4}\s?\d{4}"
+                       title="Enter 12-digit Aadhar number">
+                <small class="text-muted" style="font-size: 0.8rem; margin-top: 4px; display: block;">
+                    🔒 Aadhar number is stored securely and will <strong>not</strong> appear on the ID card.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="father_name" class="form-label">Father's Name</label>
+                <input type="text" id="father_name" name="father_name" class="form-input"
+                       value="{{ student.father_name if student else '' }}"
+                       placeholder="e.g. Rajesh Sharma">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="contact_number" class="form-label">Contact Number</label>
+                    <input type="tel" id="contact_number" name="contact_number" class="form-input"
+                           value="{{ student.contact_number if student else '' }}"
+                           placeholder="e.g. 9876543210" maxlength="15">
+                </div>
+                <div class="form-group">
+                    <label for="blood_group" class="form-label">Blood Group</label>
+                    <select id="blood_group" name="blood_group" class="form-select">
+                        <option value="">-- Select --</option>
+                        {% set bg = student.blood_group if student else '' %}
+                        <option value="A+" {% if bg == 'A+' %}selected{% endif %}>A+</option>
+                        <option value="A-" {% if bg == 'A-' %}selected{% endif %}>A−</option>
+                        <option value="B+" {% if bg == 'B+' %}selected{% endif %}>B+</option>
+                        <option value="B-" {% if bg == 'B-' %}selected{% endif %}>B−</option>
+                        <option value="AB+" {% if bg == 'AB+' %}selected{% endif %}>AB+</option>
+                        <option value="AB-" {% if bg == 'AB-' %}selected{% endif %}>AB−</option>
+                        <option value="O+" {% if bg == 'O+' %}selected{% endif %}>O+</option>
+                        <option value="O-" {% if bg == 'O-' %}selected{% endif %}>O−</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="hostel_name" class="form-label">Hostel Name</label>
+                <input type="text" id="hostel_name" name="hostel_name" class="form-input"
+                       value="{{ student.hostel_name if student else '' }}"
+                       placeholder="e.g. Limbdi Hostel">
+            </div>
+
+            <div class="form-group">
+                <label for="home_address" class="form-label">Home Address</label>
+                <textarea id="home_address" name="home_address" class="form-input"
+                          rows="3" placeholder="e.g. 123, Main Street, City, State - PIN">{{ student.home_address if student else '' }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="expiry_date" class="form-label">Expiry Date</label>
+                <input type="date" id="expiry_date" name="expiry_date" class="form-input"
+                       value="{{ student.expiry_date.isoformat() if student and student.expiry_date else '' }}">
+                <small class="text-muted" style="font-size: 0.8rem;">
+                    {% if mode == 'create' %}Optional: Leave blank for 1 year default.{% endif %}
+                </small>
+            </div>
+
+            {% if mode == 'edit' %}
+            <div class="form-group">
+                <label for="status" class="form-label">Status</label>
+                <select id="status" name="status" class="form-select">
+                    <option value="active" {% if student.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="inactive" {% if student.status == 'inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label class="form-label">Student Photo</label>
+                <div class="form-file-input">
+                    <div class="form-file-label" id="photo-label">
+                        📷 {% if student and student.photo %}Change photo{% else %}Upload photo (JPG/PNG, max 2MB){% endif %}
+                    </div>
+                    <input type="file" name="photo" accept=".jpg,.jpeg,.png" id="photo-input">
+                </div>
+                {% if student and student.photo %}
+                <div class="mt-sm" style="display:flex; align-items:center; gap: 8px;">
+                    <img src="{{ url_for('static', filename='uploads/' + student.photo) }}"
+                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                    <span class="text-muted" style="font-size: 0.85rem;">Current photo</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: var(--sp-xl);">
+                <button type="submit" class="btn btn-primary btn-lg" id="submit-btn">
+                    {% if mode == 'create' %}🎓 Create Student & Generate QR{% else %}💾 Save Changes{% endif %}
+                </button>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost btn-lg">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // File input label update
+    document.getElementById('photo-input').addEventListener('change', function() {
+        const label = document.getElementById('photo-label');
+        label.textContent = this.files[0] ? '📷 ' + this.files[0].name : '📷 Upload photo';
+    });
+</script>
+{% endblock %}

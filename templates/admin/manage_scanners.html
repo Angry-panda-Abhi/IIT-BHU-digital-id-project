@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}Manage Scanners{% endblock %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 900px; margin: 0 auto;">
+    <div class="flex-between mb-xl">
+        <div>
+            <a href="{{ url_for('admin.dashboard') }}" class="text-muted" style="font-size: 0.9rem;">← Back to Dashboard</a>
+            <h1 style="font-size: 1.5rem; font-weight: 800; margin-top: var(--sp-sm);">
+                📡 Scanner Accounts
+            </h1>
+            <p class="text-muted mt-sm">Create dedicated scan-only accounts for campus check-points</p>
+        </div>
+    </div>
+
+    <!-- Create Scanner Form -->
+    <div class="card mb-xl">
+        <h2 style="font-size: 1.15rem; font-weight: 700; margin-bottom: var(--sp-md);">➕ Create New Scanner</h2>
+        <form method="POST" action="{{ url_for('admin.create_scanner') }}" id="create-scanner-form">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
+                <div class="form-group">
+                    <label class="form-label" for="scanner-username">Username</label>
+                    <input type="text" id="scanner-username" name="username" class="form-input"
+                           placeholder="e.g. library_gate1" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scanner-password">Password</label>
+                    <input type="password" id="scanner-password" name="password" class="form-input"
+                           placeholder="Min 6 characters" required minlength="6" autocomplete="new-password">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="scanner-location">Location Name</label>
+                    <input type="text" id="scanner-location" name="location_name" class="form-input"
+                           placeholder="e.g. Library Gate 1" required>
+                </div>
+            </div>
+            <div style="margin-top: var(--sp-md);">
+                <button type="submit" class="btn btn-primary" id="create-scanner-btn">🛡️ Create Scanner Account</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Existing Scanners -->
+    <div class="table-wrapper">
+        <table id="scanners-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Location</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in scanners %}
+                <tr>
+                    <td>
+                        <strong>{{ s.username }}</strong>
+                        <span class="badge" style="background: var(--bg-secondary); color: var(--text-secondary); font-size: 0.7rem; margin-left: 6px;">scanner</span>
+                    </td>
+                    <td>
+                        <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-light); font-size: 0.85rem; margin-bottom: 4px; display: inline-flex;">
+                            📍 {{ s.location_name or 'Unassigned' }}
+                        </span>
+                        {% if s.plain_password %}
+                        <br>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">
+                            Pass: <strong>{{ s.plain_password }}</strong>
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="text-muted" style="font-size: 0.85rem;">
+                            {{ s.created_at.strftime('%d %b %Y') if s.created_at else 'N/A' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            <!-- Reset Password -->
+                            <form method="POST" action="{{ url_for('admin.reset_scanner_password', scanner_id=s.id) }}" style="display:inline-flex; gap: 4px; align-items: center;"
+                                  onsubmit="if(!this.new_password.value || this.new_password.value.length < 6){alert('Password must be at least 6 characters');return false;}return confirm('Reset password for ' + '{{ s.username }}' + '?');">
+                                <input type="password" name="new_password" placeholder="New password" 
+                                       class="form-input" style="padding: 4px 10px; font-size: 0.8rem; width: 130px; min-width: 100px;" minlength="6">
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Reset Password" style="color: var(--info);">🔑</button>
+                            </form>
+                            <!-- Delete -->
+                            <form method="POST" action="{{ url_for('admin.delete_scanner', scanner_id=s.id) }}" style="display:inline;"
+                                  onsubmit="return confirm('Delete scanner account {{ s.username }}? This cannot be undone.');">
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Delete Scanner" style="color: var(--danger);">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted" style="padding: 48px;">
+                        No scanner accounts yet. Create one above to get started.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Scanner Login Link -->
+    <div class="card mt-xl" style="background: rgba(0, 200, 83, 0.06); border: 1px solid rgba(0, 200, 83, 0.2);">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+            📡 <strong>Scanner Login URL:</strong> Share this with your scanner devices →
+            <a href="{{ url_for('scanner.login') }}" style="font-weight: 700; color: var(--accent-light);">
+                {{ url_for('scanner.login', _external=True) }}
+            </a>
+        </p>
+    </div>
+
+    <div class="card mt-lg" style="background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.25);">
+        <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+            ⚠️ <strong>Security Note:</strong> Scanner accounts can only access the QR scanner and view scan logs filtered to their assigned location.
+            They cannot view, create, edit, or delete student records. Passwords are pre-generated by the superadmin and can be reset using the 🔑 button above.
+        </p>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Student Portal{% endblock %}
+
+{% block content %}
+<div class="recovery-container fade-in">
+    <div class="text-center mb-xl">
+        <div style="font-size: 2.5rem; margin-bottom: var(--sp-md);">🎓</div>
+        <h1 style="font-size: 1.5rem; font-weight: 800;">Student Portal</h1>
+        <p class="text-muted mt-sm">Enter your Student ID or email to view your digital ID card</p>
+    </div>
+
+    <div class="card">
+        <form method="POST" action="{{ url_for('recovery.request_recovery') }}" id="recovery-form">
+            <div class="form-group">
+                <label for="identifier" class="form-label">Student ID or Email</label>
+                <input type="text" id="identifier" name="identifier" class="form-input"
+                       placeholder="e.g. NGU2026001 or student@itbhu.ac.in" required autofocus>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="request-otp-btn">
+                📧 Send Verification OTP
+            </button>
+        </form>
+
+        <div class="mt-lg text-center">
+            <p class="text-muted" style="font-size: 0.8rem;">
+                🔒 We will send a one-time code to your registered email.<br>
+                Rate limited to 3 requests per minute for security.
+            </p>
+            <div style="display: flex; justify-content: center; gap: 16px; margin-top: var(--sp-md); font-size: 0.85rem;">
+                <a href="{{ url_for('admin.login') }}" style="font-weight: 600;">🔐 Admin Portal</a>
+                <span style="color: var(--border);">|</span>
+                <a href="{{ url_for('scanner.login') }}" style="font-weight: 600;">📡 Scanner Login</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

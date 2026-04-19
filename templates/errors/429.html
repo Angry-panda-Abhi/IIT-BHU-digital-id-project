@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Too Many Requests{% endblock %}
+{% block content %}
+<div class="verify-container fade-in text-center" style="padding-top: var(--sp-3xl);">
+    <div style="font-size: 4rem; margin-bottom: var(--sp-lg);">🛑</div>
+    <h1 style="font-size: 2rem; font-weight: 800;">429 — Rate Limited</h1>
+    <p class="text-muted mt-sm mb-lg">You've made too many requests. Please wait a moment and try again.</p>
+    <div style="background: var(--warning-bg); border: 1px solid rgba(255,145,0,0.2); border-radius: var(--radius-md); padding: var(--sp-md); max-width: 400px; margin: 0 auto;">
+        <p style="color: var(--warning); font-size: 0.85rem;">
+            🔒 This limit exists to protect against brute-force attacks and abuse.
+            Your IP address and request have been logged.
+        </p>
+    </div>
+    <div class="mt-xl">
+        <a href="{{ url_for('index') }}" class="btn btn-primary">← Back to Home</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}Welcome{% endblock %}
+
+{% block content %}
+<section class="landing-hero fade-in">
+    <h1 class="landing-title">IIT BHU<br>Digital ID</h1>
+    <p class="landing-subtitle">
+        Next-generation identity verification powered by cryptographically signed QR codes,
+        real-time validation, and advanced attack prevention.
+    </p>
+    <div class="landing-actions">
+        <a href="{{ url_for('admin.login') }}" class="btn btn-primary btn-lg">🔐 Admin Portal</a>
+        <a href="{{ url_for('scanner.login') }}" class="btn btn-lg" style="background: linear-gradient(135deg, #00c853, #00e676); color: #0a0a1a; font-weight: 700;">📡 Scanner Portal</a>
+        <a href="{{ url_for('recovery.request_recovery') }}" class="btn btn-ghost btn-lg">🎓 Student Portal</a>
+    </div>
+</section>
+
+<section class="feature-grid fade-in">
+    <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h3 class="feature-title">HMAC-Signed Tokens</h3>
+        <p class="feature-desc">Every QR code contains a cryptographically signed token that cannot be forged or tampered with.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3 class="feature-title">Real-Time Verification</h3>
+        <p class="feature-desc">Instant identity verification with photo matching, status checking, and anomaly detection.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <h3 class="feature-title">Attack Prevention</h3>
+        <p class="feature-desc">Rate limiting, anti-enumeration, brute-force protection, and scan anomaly monitoring.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3 class="feature-title">Mobile Ready</h3>
+        <p class="feature-desc">Fully responsive design optimized for scanning and verification on any device.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">🔄</div>
+        <h3 class="feature-title">Secure Recovery</h3>
+        <p class="feature-desc">OTP-based QR recovery system that prevents unauthorized access to ID credentials.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">Audit Logging</h3>
+        <p class="feature-desc">Comprehensive scan logs with IP tracking, device fingerprinting, and suspicious activity alerts.</p>
+    </div>
+</section>
+{% endblock %}

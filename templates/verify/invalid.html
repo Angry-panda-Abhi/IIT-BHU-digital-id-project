@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Invalid QR Code{% endblock %}
+
+{% block content %}
+<div class="verify-container fade-in">
+    <div class="verify-card status-invalid">
+
+        <div class="invalid-icon">❌</div>
+
+        <h1 style="font-size: 1.5rem; font-weight: 800; margin-bottom: var(--sp-sm);">
+            Student Not Found
+        </h1>
+
+        <p class="text-muted" style="margin-bottom: var(--sp-lg);">
+            This student has not been added by an admin, or the QR code is not recognized by our system.
+        </p>
+
+        <div
+            style="background: var(--danger-bg); border: 1px solid rgba(255,23,68,0.2); border-radius: var(--radius-md); padding: var(--sp-md); text-align: left;">
+            <p style="color: var(--danger); font-size: 0.85rem; font-weight: 600;">🔒 Security Notice</p>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                This scan attempt has been logged with your IP address and device information.
+                If you believe this is an error, contact the administration office.
+            </p>
+        </div>
+
+        {% if current_user.is_authenticated or active_scanner %}
+        <div style="margin-top: 32px; margin-bottom: 24px; text-align: center;">
+            <a href="{% if request.args.get('source') == 'admin' %}{{ url_for('admin.scanner') }}{% else %}{{ url_for('scanner.scan') }}{% endif %}" class="btn btn-primary"
+                style="background: var(--success); width: 100%; border-radius: 8px; padding: 12px; font-weight: 700;">
+                📷 Scan Another QR
+            </a>
+        </div>
+        {% endif %}
+
+        <div class="verify-timestamp" id="verify-timestamp"></div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/verify.js') }}"></script>
+{% endblock %}

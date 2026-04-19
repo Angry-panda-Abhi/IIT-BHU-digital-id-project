@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="IIT BHU Digital ID – {{ college|default('Indian Institute of Technology, Varanasi') }}">
+    <title>{% block title %}IIT BHU Digital ID{% endblock %} – {{ college|default('Indian Institute of Technology,
+        Varanasi') }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <!-- Navigation -->
+        <nav class="navbar" id="main-nav">
+            <div class="container">
+                <a href="{{ url_for('index') }}" class="navbar-brand">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="IIT BHU Logo" style="height: 28px; width: auto; object-fit: contain;">
+                    <span>IIT BHU Digital ID</span>
+                </a>
+                <ul class="navbar-links">
+                    {% if request.endpoint and request.endpoint.startswith('scanner.') and active_scanner %}
+                        <!-- SCANNER ROOM UI -->
+                        <li><a href="{{ url_for('scanner.dashboard') }}"
+                                class="{% if request.endpoint == 'scanner.dashboard' %}active{% endif %}">Scanner Home</a></li>
+                        <li><a href="{{ url_for('scanner.scan_logs') }}"
+                                class="{% if request.endpoint == 'scanner.scan_logs' %}active{% endif %}">Scan Logs</a></li>
+                        <li><a href="{{ url_for('scanner.logout') }}">Logout</a></li>
+                    {% elif request.endpoint and request.endpoint.startswith('admin.') and current_user.is_authenticated %}
+                        <!-- ADMIN ROOM UI -->
+                        <li><a href="{{ url_for('admin.dashboard') }}"
+                                class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">Dashboard</a></li>
+                        <li><a href="{{ url_for('admin.scan_logs') }}"
+                                class="{% if request.endpoint == 'admin.scan_logs' %}active{% endif %}">Scan Logs</a></li>
+                        <li><a href="{{ url_for('admin.manage_scanners') }}"
+                                class="{% if request.endpoint == 'admin.manage_scanners' %}active{% endif %}">Scanners</a></li>
+                        <li><a href="{{ url_for('admin.settings') }}"
+                                class="{% if request.endpoint == 'admin.settings' %}active{% endif %}">Settings</a></li>
+                        <li>
+                            <a href="{{ url_for('admin.update_requests') }}"
+                               class="{% if request.endpoint == 'admin.update_requests' %}active{% endif %}">
+                               Requests
+                               {% if pending_requests_count and pending_requests_count > 0 %}
+                               <span class="nav-badge">{{ pending_requests_count }}</span>
+                               {% endif %}
+                            </a>
+                        </li>
+                        <li><a href="{{ url_for('admin.logout') }}">Logout</a></li>
+                    {% else %}
+                    <!-- No nav links needed for unauthenticated users, options are on landing page -->
+                    {% endif %}
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-container" id="flash-container">
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                {% if category == 'success' %}✅{% elif category == 'danger' %}❌{% elif category == 'warning' %}⚠️{% else
+                %}ℹ️{% endif %}
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="container">
+                <p>&copy; 2026 {{ college|default('Indian Institute of Technology, Varanasi') }} &middot; IIT BHU
+                    Digital ID</p>
+                <p class="mt-sm">Built with 🔒 security-first design</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Auto-dismiss flash messages -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('flash-container');
+            if (container) {
+                setTimeout(() => {
+                    container.style.transition = 'opacity 0.5s';
+                    container.style.opacity = '0';
+                    setTimeout(() => container.remove(), 500);
+                }, 5000);
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

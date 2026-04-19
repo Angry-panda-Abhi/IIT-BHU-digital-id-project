@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}QR Scanner — Admin{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <style>
+        /* Hide top right options during scanning to explicitly direct focus */
+        .navbar-links { display: none !important; }
+    </style>
+    <div class="mb-lg">
+            <a href="{{ url_for('scanner.dashboard') }}" class="btn btn-ghost" style="padding: 0;">← Back to Scanner Home</a>
+        <h1 class="mt-sm">Web QR Scanner</h1>
+        <p class="text-muted">Use your device's camera to scan student ID cards.</p>
+    </div>
+
+    <div class="card" style="max-width: 600px; margin: 0 auto; padding: var(--sp-md);">
+        <div id="reader" style="width: 100%; border-radius: var(--radius-lg); overflow: hidden; background: var(--surface-light); border: 2px dashed rgba(255,255,255,0.1);"></div>
+        
+        <div class="text-center mt-md">
+            <p id="scan-status" class="text-muted">Waiting for camera permissions...</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", 
+        { fps: 10, qrbox: {width: 250, height: 250}, aspectRatio: 1.0 }, 
+        /* verbose= */ false
+    );
+
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+    function onScanSuccess(decodedText, decodedResult) {
+        document.getElementById('scan-status').textContent = 'QR Code Detected! Redirecting...';
+        document.getElementById('scan-status').style.color = '#00c853';
+        
+        let targetUrl = decodedText;
+        // If the scanned QR is not from our system, artificially fail it
+        if (!decodedText.includes('/verify?token=')) {
+            targetUrl = "{{ url_for('verify.verify') }}?token=invalid_scan&sig=invalid";
+        }
+        targetUrl += "&source=scanner";
+        
+        // Stop scanning
+        html5QrcodeScanner.clear().then(() => {
+            // Redirect to the assigned URL
+            window.location.href = targetUrl;
+        }).catch(error => {
+            console.error("Failed to clear html5QrcodeScanner. ", error);
+            window.location.href = targetUrl;
+        });
+    }
+
+    function onScanFailure(error) {
+        // handle scan failure, usually better to ignore and keep scanning.
+        // console.warn(`Code scan error = ${error}`);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Update Requests{% endblock %}
+
+{% block content %}
+<div class="dashboard-header fade-in">
+    <div>
+        <h1 class="page-title">📝 Student Update Requests</h1>
+        <p class="text-muted mt-sm">Review profile photo and hostel change requests from students.</p>
+    </div>
+</div>
+
+<div class="card mb-lg fade-in">
+    <!-- Filter tabs -->
+    <div style="display: flex; gap: var(--sp-md); margin-bottom: var(--sp-lg); border-bottom: 1px solid var(--border); padding-bottom: var(--sp-sm);">
+        <a href="{{ url_for('admin.update_requests', status='pending') }}" 
+           class="btn btn-sm {% if current_filter == 'pending' %}btn-primary{% else %}btn-ghost{% endif %}">
+           ⏳ Pending
+        </a>
+        <a href="{{ url_for('admin.update_requests', status='approved') }}" 
+           class="btn btn-sm {% if current_filter == 'approved' %}btn-primary{% else %}btn-ghost{% endif %}" style="{% if current_filter == 'approved' %}background: var(--success);{% endif %}">
+           ✅ Approved
+        </a>
+        <a href="{{ url_for('admin.update_requests', status='rejected') }}" 
+           class="btn btn-sm {% if current_filter == 'rejected' %}btn-primary{% else %}btn-ghost{% endif %}" style="{% if current_filter == 'rejected' %}background: var(--danger);{% endif %}">
+           ❌ Rejected
+        </a>
+    </div>
+
+    {% if not requests %}
+        <div class="text-center text-muted" style="padding: var(--sp-xl) 0;">
+            <div style="font-size: 2rem; margin-bottom: var(--sp-sm);">📭</div>
+            <p>No {{ current_filter }} requests found.</p>
+        </div>
+    {% else %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Student</th>
+                        <th>Request Type</th>
+                        <th>Details</th>
+                        {% if current_filter == 'pending' %}
+                        <th class="text-right">Actions</th>
+                        {% else %}
+                        <th>Reviewed At</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td class="text-muted" style="font-size: 0.85rem;">{{ req.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.view_profile', user_id=req.user.id) }}" target="_blank" style="text-decoration: none;"><strong>{{ req.user.name }}</strong></a><br>
+                            <span class="text-muted" style="font-size: 0.8rem;">{{ req.user.student_id }}</span>
+                        </td>
+                        <td>
+                            {% if req.request_type == 'photo' %}
+                                <span class="badge" style="background: rgba(67,45,109,0.3); color: var(--accent-light);">📷 Photo</span>
+                            {% elif req.request_type == 'hostel' %}
+                                <span class="badge" style="background: rgba(0,150,136,0.2); color: #00bfa5;">🏠 Hostel</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if req.request_type == 'photo' %}
+                                <a href="{{ url_for('static', filename='uploads/' + req.new_value) }}" target="_blank" class="btn btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">View Image</a>
+                            {% else %}
+                                <strong style="color: var(--text-primary);">{{ req.new_value }}</strong>
+                            {% endif %}
+                        </td>
+                        
+                        {% if current_filter == 'pending' %}
+                        <td class="text-right d-flex" style="gap: 8px; justify-content: flex-end;">
+                            <form action="{{ url_for('admin.approve_request', req_id=req.id) }}" method="POST" style="display:inline;">
+                                <button type="submit" class="btn btn-sm btn-primary" style="background: var(--success); font-size: 0.75rem; padding: 4px 12px;">Approve</button>
+                            </form>
+                            
+                            <form action="{{ url_for('admin.reject_request', req_id=req.id) }}" method="POST" style="display:inline; display:flex; gap: 4px;">
+                                <input type="text" name="rejection_note" placeholder="Reason (opt)" style="font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: transparent; color: white;">
+                                <button type="submit" class="btn btn-sm" style="background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger); font-size: 0.75rem; padding: 4px 12px;">Reject</button>
+                            </form>
+                        </td>
+                        {% else %}
+                        <td class="text-muted" style="font-size: 0.85rem;">
+                            {{ req.reviewed_at.strftime('%Y-%m-%d %H:%M') if req.reviewed_at else 'Unknown' }}
+                            {% if req.status == 'rejected' and req.rejection_note %}
+                                <br><span style="color: var(--danger); font-size: 0.75rem;">Note: {{ req.rejection_note }}</span>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

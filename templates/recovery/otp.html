@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Enter OTP{% endblock %}
+
+{% block content %}
+<div class="recovery-container fade-in">
+    <div class="text-center mb-xl">
+        <div style="font-size: 2.5rem; margin-bottom: var(--sp-md);">🔑</div>
+        <h1 style="font-size: 1.5rem; font-weight: 800;">Enter Verification Code</h1>
+        <p class="text-muted mt-sm">We've sent a 6-digit code to your registered email</p>
+    </div>
+
+    {% if dev_otp %}
+    {# ── DEV MODE BANNER – only visible when MAIL_SUPPRESS_SEND = true ── #}
+    <div style="
+        background: linear-gradient(135deg, rgba(230,81,0,0.10), rgba(255,145,0,0.07));
+        border: 2px dashed rgba(230,81,0,0.45);
+        border-radius: 12px;
+        padding: 18px 20px;
+        margin-bottom: 20px;
+        text-align: center;
+    ">
+        <p style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: 0.12em; color: #e65100; margin-bottom: 8px;">
+            🛠️ Dev Mode — Email suppressed. Your OTP is:
+        </p>
+        <p id="dev-otp-value" style="
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 0.5rem;
+            color: #e65100;
+            margin: 0;
+            cursor: pointer;
+            user-select: all;
+        " title="Click to auto-fill">{{ dev_otp }}</p>
+        <p style="font-size: 0.72rem; color: #888; margin-top: 8px;">
+            Click the code to auto-fill the boxes below.
+        </p>
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <form method="POST" action="{{ url_for('recovery.verify_otp') }}" id="otp-form">
+            <div class="otp-input-group" id="otp-group">
+                <input type="text" maxlength="1" class="otp-digit" data-index="0" autocomplete="off" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-digit" data-index="1" autocomplete="off" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-digit" data-index="2" autocomplete="off" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-digit" data-index="3" autocomplete="off" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-digit" data-index="4" autocomplete="off" inputmode="numeric">
+                <input type="text" maxlength="1" class="otp-digit" data-index="5" autocomplete="off" inputmode="numeric">
+            </div>
+
+            <!-- Hidden real OTP input -->
+            <input type="hidden" name="otp" id="otp-hidden">
+
+            <div class="otp-timer" id="otp-timer">
+                Code expires in <span id="timer-countdown">10:00</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg mt-xl" style="width: 100%;" id="verify-otp-btn">
+                ✅ Verify & Recover QR
+            </button>
+        </form>
+
+        <div class="mt-lg text-center">
+            <a href="{{ url_for('recovery.request_recovery') }}" class="text-muted" style="font-size: 0.85rem;">
+                Didn't receive the code? Request again →
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/recovery.js') }}"></script>
+{% if dev_otp %}
+<script>
+// Auto-fill OTP digits from the dev banner when the code is clicked
+(function () {
+    const code = "{{ dev_otp }}";
+    const digits = document.querySelectorAll('.otp-digit');
+    const hidden = document.getElementById('otp-hidden');
+
+    function fillOtp(otp) {
+        otp.split('').forEach((ch, i) => {
+            if (digits[i]) digits[i].value = ch;
+        });
+        if (hidden) hidden.value = otp;
+    }
+
+    // Click on the big code text → auto-fill
+    const devCode = document.getElementById('dev-otp-value');
+    if (devCode) {
+        devCode.addEventListener('click', () => fillOtp(code));
+    }
+})();
+</script>
+{% endif %}
+{% endblock %}

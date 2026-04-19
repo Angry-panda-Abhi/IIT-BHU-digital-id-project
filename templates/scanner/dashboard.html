@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}Scanner Home{% endblock %}
+
+{% block content %}
+<div class="fade-in" style="max-width: 800px; margin: 0 auto;">
+    <div class="flex-between mb-xl">
+        <div>
+            <h1 style="font-size: 1.8rem; font-weight: 800; margin-bottom: var(--sp-sm);">
+                Scanner Portal: <span style="color: var(--accent-light);">{{ active_scanner.location_name }}</span>
+            </h1>
+            <p class="text-muted">You are logged in as {{ active_scanner.username }}</p>
+        </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: 1fr;">
+        <div class="stat-card"
+            style="background: linear-gradient(135deg, rgba(0, 200, 83, 0.1), rgba(0, 230, 118, 0.1)); border-color: rgba(0, 200, 83, 0.3);">
+            <div class="stat-icon stat-icon-green" style="color: white;">📋</div>
+            <div>
+                <div class="stat-value">{{ scans_today }}</div>
+                <div class="stat-label">Scans Today at this Location</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-xl" style="text-align: center; padding: 48px;">
+        <div style="font-size: 4rem; margin-bottom: 16px;">📷</div>
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 24px;">Ready to Verify Student IDs?</h2>
+        <a href="{{ url_for('scanner.scan') }}" class="btn btn-lg"
+            style="background: linear-gradient(135deg, #00c853, #00e676); color: #0a0a1a; font-weight: 800; padding: 18px 48px; font-size: 1.1rem; box-shadow: 0 8px 24px rgba(0, 200, 83, 0.3);">
+            🔍 Open Web Scanner
+        </a>
+    </div>
+
+    <div class="card mt-lg" style="background: rgba(2, 136, 209, 0.08); border: 1px solid rgba(2, 136, 209, 0.25);">
+        <p
+            style="font-size: 0.9rem; color: var(--text-secondary); margin: 0; display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.5rem;">ℹ️</span>
+            <span>
+                <strong>Instructions:</strong> Present the digital ID on the student's screen to the camera. The system
+                will automatically detect the QR code, verify the cryptographic signature, and confirm their active
+                status in real-time.
+            </span>
+        </p>
+    </div>
+</div>
+{% endblock %}

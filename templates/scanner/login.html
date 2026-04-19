@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}Scanner Login{% endblock %}
+
+{% block content %}
+<div class="login-container fade-in">
+    <div class="login-header">
+        <div class="login-logo" style="background: linear-gradient(135deg, #00c853, #00e676); font-size: 2rem;">📡</div>
+        <h1 class="login-title">Scanner Portal</h1>
+        <p class="text-muted mt-sm">Sign in to start scanning student IDs at your location</p>
+    </div>
+
+    <div class="card">
+        <form method="POST" action="{{ url_for('scanner.login') }}" id="scanner-login-form">
+            <div class="form-group">
+                <label for="username" class="form-label">Scanner Username</label>
+                <input type="text" id="username" name="username" class="form-input"
+                       placeholder="e.g. library_gate1" required autocomplete="username" autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-input"
+                       placeholder="Enter scanner password" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn btn-lg" id="scanner-login-btn"
+                    style="width: 100%; background: linear-gradient(135deg, #00c853, #00e676); color: #0a0a1a; font-weight: 700;">
+                📡 Start Scanning
+            </button>
+        </form>
+    </div>
+
+    <div style="text-align: center; margin-top: var(--sp-xl);">
+        <p class="text-muted" style="font-size: 0.85rem;">
+            Protected by rate limiting · Max 5 attempts per minute
+        </p>
+        <div style="display: flex; justify-content: center; gap: 16px; margin-top: var(--sp-md); font-size: 0.85rem;">
+            <a href="{{ url_for('admin.login') }}" style="font-weight: 600;">🔐 Admin Portal</a>
+            <span style="color: var(--border);">|</span>
+            <a href="{{ url_for('recovery.request_recovery') }}" style="font-weight: 600; color: var(--text-secondary);">🎓 Student Portal</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="flex-between mb-xl">
+        <div>
+            <h1 style="font-size: 1.75rem; font-weight: 800;">Dashboard</h1>
+            <p class="text-muted mt-sm">Manage student ID cards and monitor activity</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="{{ url_for('admin.scanner') }}" class="btn btn-primary" style="background-color: var(--success); box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+                📷 Scan QR
+            </a>
+            <a href="{{ url_for('admin.create_student') }}" class="btn btn-primary">
+                ➕ New Student
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-purple">👥</div>
+            <div>
+                <div class="stat-value">{{ students|length }}</div>
+                <div class="stat-label">Total Students</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-green">✅</div>
+            <div>
+                <div class="stat-value">{{ students|selectattr('effective_status', 'equalto', 'active')|list|length }}</div>
+                <div class="stat-label">Active IDs</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-blue">📊</div>
+            <div>
+                <div class="stat-value">{{ stats.today }}</div>
+                <div class="stat-label">Scans Today</div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-orange">⚠️</div>
+            <div>
+                <div class="stat-value">{{ stats.invalid_today }}</div>
+                <div class="stat-label">Invalid Scans Today</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter -->
+    <div class="search-bar">
+        <form method="GET" action="{{ url_for('admin.dashboard') }}" style="display:flex; gap: 8px; width: 100%;">
+            <input type="text" name="q" value="{{ search }}" class="form-input"
+                   placeholder="🔍 Search by name, student ID, or email…" id="search-input">
+            <select name="status" class="form-select" style="max-width: 160px;" id="status-filter">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Status</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+
+    <!-- Student Table -->
+    <div class="table-wrapper">
+        <table id="students-table">
+            <thead>
+                <tr>
+                    <th>Photo</th>
+                    <th>Name</th>
+                    <th>Student ID</th>
+                    <th>Course & Dept</th>
+                    <th>Status</th>
+                    <th>Expires</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>
+                        {% if student.photo %}
+                            <img src="{{ url_for('static', filename='uploads/' + student.photo) }}"
+                                 alt="{{ student.name }}" class="table-photo">
+                        {% else %}
+                            <div class="table-photo" style="background: var(--bg-secondary); display:flex; align-items:center; justify-content:center; font-size:0.7rem; color: var(--text-muted);">👤</div>
+                        {% endif %}
+                    </td>
+                    <td><a href="{{ url_for('admin.view_profile', user_id=student.id) }}" target="_blank" style="text-decoration: none;"><strong>{{ student.name }}</strong></a></td>
+                    <td><code style="color: var(--accent-light);">{{ student.student_id }}</code></td>
+                    <td>
+                        {{ student.course }}
+                        {% if student.department %}
+                        <br><span class="text-muted" style="font-size: 0.8rem;">{{ student.department }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ student.effective_status }}">
+                            {% if student.effective_status == 'active' %}●{% elif student.effective_status == 'expired' %}✕{% else %}⊘{% endif %}
+                            {{ student.effective_status }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="text-muted" style="font-size: 0.85rem;">
+                            {{ student.expiry_date.strftime('%d %b %Y') }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{{ url_for('admin.edit_student', user_id=student.id) }}"
+                               class="btn btn-ghost btn-sm" title="Edit">✏️</a>
+                            
+                            <a href="{{ url_for('admin.download_qr', user_id=student.id) }}"
+                               class="btn btn-ghost btn-sm" title="Download QR Image">🖼️</a>
+                            <a href="{{ url_for('admin.download_pdf', user_id=student.id) }}"
+                               class="btn btn-ghost btn-sm" title="Download ID PDF">📄</a>
+                            <form method="POST" action="{{ url_for('admin.email_qr', user_id=student.id) }}" style="display:inline;">
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Email QR">📧</button>
+                            </form>
+                            
+                            <form method="POST" action="{{ url_for('admin.regenerate_qr', user_id=student.id) }}" style="display:inline;"
+                                  onsubmit="return confirm('Regenerate QR? The old QR will stop working.');">
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Regenerate QR">🔄</button>
+                            </form>
+                            
+                            <form method="POST" action="{{ url_for('admin.delete_student', user_id=student.id) }}" style="display:inline;"
+                                  onsubmit="return confirm('Deactivate this student? Their QR will be revoked.');">
+                                <button type="submit" class="btn btn-ghost btn-sm" title="Deactivate" style="color: var(--danger);">🗑️</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted" style="padding: 48px;">
+                        No students found. <a href="{{ url_for('admin.create_student') }}">Create one →</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

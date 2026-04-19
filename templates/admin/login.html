@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}Admin Login{% endblock %}
+
+{% block content %}
+<div class="login-container fade-in">
+    <div class="login-header">
+        <div class="login-logo">🔐</div>
+        <h1 class="login-title">Admin Portal</h1>
+        <p class="text-muted mt-sm">Sign in to manage student ID cards</p>
+    </div>
+
+    <div class="card">
+        <form method="POST" action="{{ url_for('admin.login') }}" id="login-form">
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-input"
+                       placeholder="Enter username" required autocomplete="username" autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-input"
+                       placeholder="Enter password" required autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="login-btn">
+                🔐 Sign In
+            </button>
+        </form>
+    </div>
+
+    <p class="text-center text-muted mt-lg" style="font-size: 0.8rem;">
+        Protected by rate limiting · Max 5 attempts per minute
+    </p>
+    
+    <div style="display: flex; justify-content: center; gap: 16px; margin-top: var(--sp-md); font-size: 0.85rem;">
+        <a href="{{ url_for('scanner.login') }}" style="font-weight: 600;">📡 Scanner Login</a>
+        <span style="color: var(--border);">|</span>
+        <a href="{{ url_for('recovery.request_recovery') }}" style="font-weight: 600; color: var(--text-secondary);">🎓 Student Portal</a>
+    </div>
+</div>
+{% endblock %}

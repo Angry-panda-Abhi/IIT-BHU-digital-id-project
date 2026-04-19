@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% set college = config.COLLEGE_NAME %}
+
+{% block title %}Scan Logs{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="flex-between mb-xl">
+        <div>
+            <h1 style="font-size: 1.5rem; font-weight: 800;">📊 Scan Logs</h1>
+            <p class="text-muted mt-sm">Monitor all QR verification attempts</p>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="{% if request.endpoint and request.endpoint.startswith('scanner.') %}{{ url_for('scanner.export_scan_logs') }}{% else %}{{ url_for('admin.export_scan_logs') }}{% endif %}" class="btn btn-primary" style="background: var(--success); color: white;">
+                📥 Export to Excel
+            </a>
+            <a href="{% if request.endpoint and request.endpoint.startswith('scanner.') %}{{ url_for('scanner.dashboard') }}{% else %}{{ url_for('admin.dashboard') }}{% endif %}" class="btn btn-ghost">{% if request.endpoint and request.endpoint.startswith('scanner.') %}← Scanner Home{% else %}← Dashboard{% endif %}</a>
+        </div>
+    </div>
+
+    <!-- Search & Filter FOR ADMINS ONLY -->
+    {% if request.endpoint and request.endpoint.startswith('admin.') %}
+    <div class="search-bar">
+        <form method="GET" action="{{ url_for('admin.scan_logs') }}" style="display:flex; gap: 8px; width: 100%;">
+            <input type="text" name="q" value="{{ search or '' }}" class="form-input"
+                   placeholder="🔍 Search Roll Number, Hostel, Location, or Name…" id="search-input">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="table-wrapper">
+        <table id="scan-logs-table">
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>Student Name</th>
+                    <th>Roll Number</th>
+                    <th>Branch</th>
+                    <th>Hostel</th>
+                    <th>Location</th>
+                    <th>Timing</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs.items %}
+                <tr>
+                    <td class="text-muted">{{ (logs.page - 1) * logs.per_page + loop.index }}</td>
+                    <td><strong>{{ log.user.name if log.user else 'Unknown' }}</strong></td>
+                    <td><code style="color: var(--accent-light);">{{ log.user.student_id if log.user else 'N/A' }}</code></td>
+                    <td>{{ log.user.course if log.user else 'N/A' }}</td>
+                    <td>{{ log.user.hostel_name if log.user and log.user.hostel_name else 'N/A' }}</td>
+                    <td>
+                        <span class="badge" style="background: var(--bg-secondary); color: var(--text-secondary); font-size: 0.8rem;">
+                            {{ log.location if log.location else 'N/A' }}
+                        </span>
+                    </td>
+                    <td>
+                        <span style="font-family: var(--font-mono); font-size: 0.85rem;">
+                            {{ log.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ 'success' if log.result == 'success' else 'invalid' }}">
+                            {{ log.result }}
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted" style="padding: 48px;">
+                        No scan logs yet.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if logs.pages > 1 %}
+    <nav class="pagination">
+        {% if logs.has_prev %}
+            <a href="{{ url_for('admin.scan_logs', page=logs.prev_num) }}">← Prev</a>
+        {% endif %}
+        {% for page_num in logs.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if page_num %}
+                {% if page_num == logs.page %}
+                    <span class="active"><span>{{ page_num }}</span></span>
+                {% else %}
+                    <a href="{{ url_for('admin.scan_logs', page=page_num) }}">{{ page_num }}</a>
+                {% endif %}
+            {% else %}
+                <span>…</span>
+            {% endif %}
+        {% endfor %}
+        {% if logs.has_next %}
+            <a href="{{ url_for('admin.scan_logs', page=logs.next_num) }}">Next →</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
