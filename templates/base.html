@@ -21,7 +21,15 @@
                     <img src="{{ url_for('static', filename='images/logo.png') }}" alt="IIT BHU Logo" style="height: 28px; width: auto; object-fit: contain;">
                     <span>IIT BHU Digital ID</span>
                 </a>
-                <ul class="navbar-links">
+
+                {% set show_nav = (request.endpoint and request.endpoint.startswith('admin.') and current_user.is_authenticated) or (request.endpoint and request.endpoint.startswith('scanner.') and active_scanner) %}
+                {% if show_nav %}
+                <button class="hamburger-btn" id="hamburger-btn" aria-label="Toggle menu">
+                    <span></span><span></span><span></span>
+                </button>
+                {% endif %}
+
+                <ul class="navbar-links" id="navbar-links">
                     {% if request.endpoint and request.endpoint.startswith('scanner.') and active_scanner %}
                         <!-- SCANNER ROOM UI -->
                         <li><a href="{{ url_for('scanner.dashboard') }}"
@@ -88,9 +96,10 @@
         </footer>
     </div>
 
-    <!-- Auto-dismiss flash messages -->
+    <!-- Auto-dismiss flash messages + Hamburger Menu -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Flash auto-dismiss
             const container = document.getElementById('flash-container');
             if (container) {
                 setTimeout(() => {
@@ -98,6 +107,23 @@
                     container.style.opacity = '0';
                     setTimeout(() => container.remove(), 500);
                 }, 5000);
+            }
+
+            // Hamburger menu toggle
+            const btn = document.getElementById('hamburger-btn');
+            const nav = document.getElementById('navbar-links');
+            if (btn && nav) {
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('active');
+                    nav.classList.toggle('open');
+                });
+                // Close menu when a link is clicked
+                nav.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        btn.classList.remove('active');
+                        nav.classList.remove('open');
+                    });
+                });
             }
         });
     </script>

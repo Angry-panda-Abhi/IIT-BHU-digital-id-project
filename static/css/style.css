@@ -1156,12 +1156,44 @@ tr:hover td {
   border: 3px solid var(--border);
 }
 
+/* --- Hamburger Menu Button --- */
+.hamburger-btn {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  z-index: 1001;
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 24px;
+  height: 2.5px;
+  background: var(--text-primary);
+  border-radius: 2px;
+  transition: var(--transition);
+}
+
+.hamburger-btn.active span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.hamburger-btn.active span:nth-child(2) {
+  opacity: 0;
+}
+.hamburger-btn.active span:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
 /* --- Responsive --- */
 @media (max-width: 768px) {
   .container { padding: 0 var(--sp-md); }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .grid-2 { grid-template-columns: 1fr; }
-  .navbar-links { gap: var(--sp-sm); }
   .feature-grid { grid-template-columns: 1fr; }
   .table-wrapper { font-size: 0.85rem; }
   th, td { padding: 10px 12px; }
@@ -1169,11 +1201,53 @@ tr:hover td {
   .verify-details-grid { grid-template-columns: 1fr; }
   .verify-photo-rect { width: 160px; height: 200px; }
   .landing-actions { flex-direction: column; align-items: center; }
+
+  /* Show hamburger, collapse nav */
+  .hamburger-btn {
+    display: flex;
+  }
+
+  .navbar-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    padding: var(--sp-sm) 0;
+    z-index: 1000;
+  }
+
+  .navbar-links.open {
+    display: flex;
+  }
+
+  .navbar-links li {
+    width: 100%;
+  }
+
+  .navbar-links a {
+    display: block;
+    padding: 12px var(--sp-lg) !important;
+    border-radius: 0 !important;
+    font-size: 0.95rem !important;
+  }
+
+  .navbar-links a:hover,
+  .navbar-links a.active {
+    background: var(--accent-glow);
+  }
+
+  .navbar .container {
+    position: relative;
+  }
 }
 
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
-  .navbar-links { display: none; }
   .search-bar { flex-direction: column; }
 }
 
