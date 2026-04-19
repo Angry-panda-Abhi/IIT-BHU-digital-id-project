@@ -3,7 +3,7 @@ Flask application factory.
 """
 import os
 import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, url_for
 from config import Config
 from extensions import db, login_manager, limiter, mail
 
