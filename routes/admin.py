@@ -170,35 +170,40 @@ def create_student():
                 errors.append("Invalid Date of Birth format.")
         if not email.lower().endswith("@itbhu.ac.in"):
             errors.append("Only @itbhu.ac.in email addresses are allowed.")
-        existing_student = User.query.filter_by(student_id=student_id).first()
-        if existing_student:
-            if existing_student.status == "inactive":
-                for log in existing_student.scan_logs.all():
-                    log.user_id = None
-                for req in existing_student.update_requests.all():
-                    db.session.delete(req)
-                if existing_student.token:
-                    db.session.delete(existing_student.token)
-                    existing_student.token = None
-                db.session.delete(existing_student)
-                db.session.commit()
-            else:
-                errors.append("Student ID already exists.")
-                
-        existing_email = User.query.filter_by(email=email).first()
-        if existing_email:
-            if existing_email.status == "inactive":
-                for log in existing_email.scan_logs.all():
-                    log.user_id = None
-                for req in existing_email.update_requests.all():
-                    db.session.delete(req)
-                if existing_email.token:
-                    db.session.delete(existing_email.token)
-                    existing_email.token = None
-                db.session.delete(existing_email)
-                db.session.commit()
-            else:
-                errors.append("Email already registered.")
+        try:
+            existing_student = User.query.filter_by(student_id=student_id).first()
+            if existing_student:
+                if existing_student.status == "inactive":
+                    for log in existing_student.scan_logs.all():
+                        log.user_id = None
+                    for req in existing_student.update_requests.all():
+                        db.session.delete(req)
+                    if existing_student.token:
+                        db.session.delete(existing_student.token)
+                        existing_student.token = None
+                    db.session.delete(existing_student)
+                    db.session.commit()
+                else:
+                    errors.append("Student ID already exists.")
+                    
+            existing_email = User.query.filter_by(email=email).first()
+            if existing_email:
+                if existing_email.status == "inactive":
+                    for log in existing_email.scan_logs.all():
+                        log.user_id = None
+                    for req in existing_email.update_requests.all():
+                        db.session.delete(req)
+                    if existing_email.token:
+                        db.session.delete(existing_email.token)
+                        existing_email.token = None
+                    db.session.delete(existing_email)
+                    db.session.commit()
+                else:
+                    errors.append("Email already registered.")
+        except Exception as cleanup_error:
+            db.session.rollback()
+            current_app.logger.error(f"Cleanup Error: {cleanup_error}")
+            errors.append(f"System Error during cleanup: {cleanup_error.__class__.__name__}")
 
         expiry_str = request.form.get("expiry_date", "")
         expiry_date_val = None
@@ -224,33 +229,40 @@ def create_student():
                 flash(e, "danger")
             return render_template("admin/student_form.html", mode="create")
 
-        user = User(
-            name=name,
-            student_id=student_id,
-            course=course,
-            department=department,
-            aadhar_number=aadhar_number or None,
-            father_name=father_name or None,
-            contact_number=contact_number or None,
-            blood_group=blood_group or None,
-            hostel_name=hostel_name or None,
-            home_address=home_address or None,
-            dob=dob,
-            email=email,
-            photo=photo_filename,
-            photo_updated_at=datetime.utcnow() if photo_filename else None,
-            photo_warning_scans=0,
-            status="active",
-            expiry_date=expiry_date_val,
-        )
-        db.session.add(user)
-        db.session.commit()
-
-        # Generate secure token + QR
-        generate_token(user.id)
-
-        flash(f"Student {name} created successfully!", "success")
-        return redirect(url_for("admin.dashboard"))
+        try:
+            user = User(
+                name=name,
+                student_id=student_id,
+                course=course,
+                department=department,
+                aadhar_number=aadhar_number or None,
+                father_name=father_name or None,
+                contact_number=contact_number or None,
+                blood_group=blood_group or None,
+                hostel_name=hostel_name or None,
+                home_address=home_address or None,
+                dob=dob,
+                email=email,
+                photo=photo_filename,
+                photo_updated_at=datetime.utcnow() if photo_filename else None,
+                photo_warning_scans=0,
+                status="active",
+                expiry_date=expiry_date_val,
+            )
+            db.session.add(user)
+            db.session.commit()
+    
+            # Generate secure token + QR
+            generate_token(user.id)
+    
+            flash(f"Student {name} created successfully!", "success")
+            return redirect(url_for("admin.dashboard"))
+            
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Create student DB Error: {e}")
+            flash(f"System Error: {e.__class__.__name__} - Please ensure no conflicting records exist or contact support.", "danger")
+            return render_template("admin/student_form.html", mode="create")
 
     return render_template("admin/student_form.html", mode="create")
 
