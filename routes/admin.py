@@ -333,11 +333,13 @@ def edit_student(user_id):
 @superadmin_required
 def delete_student(user_id):
     user = User.query.get_or_404(user_id)
-    user.status = "inactive"
-    if user.token:
-        user.token.is_revoked = True
+    
+    # Hard delete the user so their email and roll number (student_id)
+    # are completely freed up and can be registered again.
+    db.session.delete(user)
     db.session.commit()
-    flash(f"Student {user.name} deactivated.", "warning")
+    
+    flash(f"Student {user.name} permanently deleted.", "warning")
     return redirect(url_for("admin.dashboard"))
 
 
