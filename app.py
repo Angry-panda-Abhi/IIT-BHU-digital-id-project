@@ -84,9 +84,22 @@ def create_app(config_class=Config):
     def server_error(e):
         return render_template("errors/500.html"), 500
 
-    # Create tables
+    # Create tables and auto-seed admin if database is empty
     with app.app_context():
         db.create_all()
+        
+        from models import Admin
+        if not Admin.query.first():
+            import bcrypt
+            print("🌱 Seeding default admin account...")
+            # Default password for initial setup
+            password = "SecureAdmin@2026"
+            hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+            admin = Admin(username="admin", password_hash=hashed)
+            db.session.add(admin)
+            db.session.commit()
+            print("✅ Default admin created successfully.")
+
 
     # Logging
     if not app.debug:
