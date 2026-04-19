@@ -52,21 +52,28 @@ def upload_photo_from_path(filepath, folder="student_photos"):
 
 
 def _upload_to_cloudinary(file_storage, folder):
-    """Upload to Cloudinary and return the secure URL."""
+    """Upload to Cloudinary and return the secure URL with error handling."""
     import cloudinary.uploader
+    from flask import flash
 
-    # Read file into memory
-    file_bytes = file_storage.read()
-    file_storage.seek(0)  # Reset for any subsequent reads
+    try:
+        # Read file into memory
+        file_bytes = file_storage.read()
+        file_storage.seek(0)  # Reset for any subsequent reads
 
-    result = cloudinary.uploader.upload(
-        io.BytesIO(file_bytes),
-        folder=folder,
-        transformation=[
-            {"width": 400, "height": 500, "crop": "fill", "gravity": "face"}
-        ]
-    )
-    return result["secure_url"]
+        result = cloudinary.uploader.upload(
+            io.BytesIO(file_bytes),
+            folder=folder,
+            transformation=[
+                {"width": 400, "height": 500, "crop": "fill", "gravity": "face"}
+            ]
+        )
+        return result["secure_url"]
+    except Exception as e:
+        current_app.logger.error(f"❌ Cloudinary upload failed: {e}")
+        flash(f"Cloudinary upload failed ({e}). Saving locally instead.", "warning")
+        # Fall back to local storage
+        return _save_locally(file_storage)
 
 
 def _save_locally(file_storage):
