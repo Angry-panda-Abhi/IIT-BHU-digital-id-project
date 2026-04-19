@@ -175,7 +175,7 @@ def create_student():
             if existing_student.status == "inactive":
                 if existing_student.token:
                     db.session.delete(existing_student.token)
-                ScanLog.query.filter_by(user_id=existing_student.id).delete()
+                ScanLog.query.filter_by(user_id=existing_student.id).update({"user_id": None})
                 UpdateRequest.query.filter_by(user_id=existing_student.id).delete()
                 db.session.delete(existing_student)
                 db.session.commit()
@@ -187,7 +187,7 @@ def create_student():
             if existing_email.status == "inactive":
                 if existing_email.token:
                     db.session.delete(existing_email.token)
-                ScanLog.query.filter_by(user_id=existing_email.id).delete()
+                ScanLog.query.filter_by(user_id=existing_email.id).update({"user_id": None})
                 UpdateRequest.query.filter_by(user_id=existing_email.id).delete()
                 db.session.delete(existing_email)
                 db.session.commit()
@@ -353,10 +353,10 @@ def edit_student(user_id):
 def delete_student(user_id):
     user = User.query.get_or_404(user_id)
     
-    # Postgres lacks ON DELETE CASCADE schema constraints for these; manually remove
+    # Postgres lacks ON DELETE CASCADE schema constraints for these; manually severe relationships
     if user.token:
         db.session.delete(user.token)
-    ScanLog.query.filter_by(user_id=user.id).delete()
+    ScanLog.query.filter_by(user_id=user.id).update({"user_id": None})
     UpdateRequest.query.filter_by(user_id=user.id).delete()
     
     # Hard delete the user so their email and roll number (student_id)
