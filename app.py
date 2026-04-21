@@ -132,6 +132,25 @@ def create_app(config_class=Config):
     # Create tables and auto-seed admin if database is empty
     with app.app_context():
         db.create_all()
+
+        # --- Auto-Migration to add new columns for cross-hostel features ---
+        from sqlalchemy import text
+        migrations = [
+            "ALTER TABLE scanners ADD COLUMN IF NOT EXISTS scanner_type VARCHAR(20) NOT NULL DEFAULT 'general'",
+            "ALTER TABLE scanners ADD COLUMN IF NOT EXISTS assigned_hostel VARCHAR(120)",
+            "ALTER TABLE scan_logs ADD COLUMN IF NOT EXISTS is_cross_hostel BOOLEAN NOT NULL DEFAULT FALSE",
+            "ALTER TABLE scan_logs ADD COLUMN IF NOT EXISTS cross_hostel_reason VARCHAR(255)"
+        ]
+        for sql in migrations:
+            try:
+                # We use raw text for ALTER TABLE because SQLAlchemy models alone won't trigger column additions on existing tables
+                db.session.execute(text(sql))
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                # Silently ignore if already exists (common on Postgres/SQLite depending on version)
+                if "already exists" not in str(e).lower() and "duplicate column" not in str(e).lower():
+                    app.logger.warning(f"Migration notice: {str(e)[:100]}")
         
         from models import Admin
         if not Admin.query.first():
