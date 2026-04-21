@@ -96,7 +96,8 @@ def verify():
     token_obj, error = validate_token(token_value, signature)
 
     if error:
-        log_scan(user_id=None, token_used=token_value[:64], result="invalid", location=location)
+        if location != "External":
+            log_scan(user_id=None, token_used=token_value[:64], result="invalid", location=location)
         return render_template("verify/invalid.html", reason=error), 200
 
     user = token_obj.user
@@ -104,7 +105,8 @@ def verify():
     # --- Check expiry & status ---
     effective = user.effective_status
     if effective in ("expired", "inactive"):
-        log_scan(user_id=user.id, token_used=token_value, result="expired", location=location)
+        if location != "External":
+            log_scan(user_id=user.id, token_used=token_value, result="expired", location=location)
         return render_template("verify/invalid.html", reason="not_found"), 200
 
     # --- Check for cross-hostel entry ---
@@ -118,12 +120,14 @@ def verify():
         if student_hostel != assigned_hostel:
             is_cross_hostel = True
 
-    # --- Log successful scan ---
-    scan_log = log_scan(user_id=user.id, token_used=token_value, result="success", location=location)
+    # --- Log successful scan (SKIP for External/Google Lens) ---
+    scan_log = None
+    if location != "External":
+        scan_log = log_scan(user_id=user.id, token_used=token_value, result="success", location=location)
     
-    if is_cross_hostel:
-        scan_log.is_cross_hostel = True
-        db.session.commit()
+        if is_cross_hostel and scan_log:
+            scan_log.is_cross_hostel = True
+            db.session.commit()
 
     # --- Photo update check ---
     hard_block, scans_remaining = _check_photo_update_status(user)
