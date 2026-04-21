@@ -140,9 +140,11 @@ def verify():
             is_profile_preview=False
         )
 
-    # --- Previous scan info (for authorized scanners) ---
+    # --- Previous scan info (for authorized scanners only) ---
     from models import ScanLog
-    previous_scan = ScanLog.query.filter_by(user_id=user.id, result="success").order_by(ScanLog.timestamp.desc()).offset(1).first()
+    previous_scan = ScanLog.query.filter_by(user_id=user.id, result="success")\
+        .filter(ScanLog.location != "External")\
+        .order_by(ScanLog.timestamp.desc()).offset(1).first()
 
     # --- Anomaly check ---
     anomaly = detect_anomaly(token_value)
