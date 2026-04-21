@@ -37,10 +37,37 @@
                            placeholder="e.g. Library Gate 1" required>
                 </div>
             </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                <div class="form-group">
+                    <label class="form-label" for="scanner-type">Scanner Type</label>
+                    <select id="scanner-type" name="scanner_type" class="form-input" required onchange="toggleHostelInput(this.value)">
+                        <option value="general">General Scanner (No specific restrictions)</option>
+                        <option value="hostel">Hostel Security Scanner (Enforces cross-hostel entry reasons)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="assigned-hostel-group" style="display: none;">
+                    <label class="form-label" for="assigned-hostel">Assigned Hostel</label>
+                    <input type="text" id="assigned-hostel" name="assigned_hostel" class="form-input"
+                           placeholder="e.g. Aryabhatta Hostel (Must match exactly)">
+                </div>
+            </div>
             <div style="margin-top: var(--sp-md);">
                 <button type="submit" class="btn btn-primary" id="create-scanner-btn">🛡️ Create Scanner Account</button>
             </div>
         </form>
+        <script>
+            function toggleHostelInput(type) {
+                const group = document.getElementById('assigned-hostel-group');
+                const input = document.getElementById('assigned-hostel');
+                if (type === 'hostel') {
+                    group.style.display = 'block';
+                    input.required = true;
+                } else {
+                    group.style.display = 'none';
+                    input.required = false;
+                }
+            }
+        </script>
     </div>
 
     <!-- Existing Scanners -->
@@ -65,6 +92,12 @@
                         <span class="badge" style="background: rgba(99, 102, 241, 0.15); color: var(--accent-light); font-size: 0.85rem; margin-bottom: 4px; display: inline-flex;">
                             📍 {{ s.location_name or 'Unassigned' }}
                         </span>
+                        {% if s.scanner_type == 'hostel' %}
+                        <br>
+                        <span class="badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; font-size: 0.75rem; margin-bottom: 4px; display: inline-flex;">
+                            🏠 {{ s.assigned_hostel }} Security
+                        </span>
+                        {% endif %}
                         {% if s.plain_password %}
                         <br>
                         <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">

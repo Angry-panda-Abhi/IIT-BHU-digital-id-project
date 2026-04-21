@@ -88,6 +88,18 @@ def profile():
     pending_photo = UpdateRequest.query.filter_by(user_id=user.id, request_type='photo', status='pending').first()
     pending_hostel = UpdateRequest.query.filter_by(user_id=user.id, request_type='hostel', status='pending').first()
 
+    # Check if a hard photo update block is enforced
+    from routes.verify import _check_photo_update_status
+    hard_block, scans_remaining = _check_photo_update_status(user)
+    if hard_block:
+        return render_template(
+            "verify/photo_update.html",
+            user=user,
+            no_photo=(not user.photo),
+            college=current_app.config["COLLEGE_NAME"],
+            is_profile_preview=True
+        )
+
     # Reuse the same ID verification template but pass a flag indicating it's a profile view
     return render_template(
         "verify/result.html",
@@ -112,3 +124,110 @@ def logout():
     session.pop("student_id", None)
     flash("You have been signed out.", "info")
     return redirect(url_for("recovery.portal"))
+
+
+# ---------------------------------------------------------------------------
+# Student Self-Service Actions
+# ---------------------------------------------------------------------------
+
+def _allowed_photo(filename):
+    return "." in filename and filename.rsplit(".", 1)[1].lower() in current_app.config.get("ALLOWED_EXTENSIONS", {"png", "jpg", "jpeg"})
+
+@recovery_bp.route("/update-photo", methods=["POST"])
+@limiter.limit("5 per minute")
+def update_photo():
+    """Update profile photo directly (used during hard block)."""
+    student_id = session.get("student_id")
+    if not student_id:
+        flash("Please sign in.", "warning")
+        return redirect(url_for("recovery.portal"))
+        
+    user = db.session.get(User, student_id)
+    if not user:
+        session.pop("student_id", None)
+        return redirect(url_for("recovery.portal"))
+
+    if "photo" not in request.files or not request.files["photo"].filename:
+        flash("Please select a photo to upload.", "danger")
+        return redirect(url_for("recovery.profile"))
+
+    file = request.files["photo"]
+    if not _allowed_photo(file.filename):
+        flash("Invalid file type. Please upload a JPG or PNG image.", "danger")
+        return redirect(url_for("recovery.profile"))
+
+    # Save the new photo
+    from services.cloud_storage import upload_photo
+    from datetime import datetime
+    photo_result = upload_photo(file)
+
+    user.photo = photo_result
+    user.photo_updated_at = datetime.utcnow()
+    user.photo_warning_scans = 0
+    db.session.commit()
+
+    flash("Profile photo updated successfully.", "success")
+    return redirect(url_for("recovery.profile"))
+
+
+@recovery_bp.route("/submit-request", methods=["POST"])
+@limiter.limit("5 per minute")
+def submit_request():
+    """Submit a request for profile change (requires admin approval)."""
+    student_id = session.get("student_id")
+    if not student_id:
+        flash("Please sign in.", "warning")
+        return redirect(url_for("recovery.portal"))
+        
+    user = db.session.get(User, student_id)
+    if not user:
+        session.pop("student_id", None)
+        return redirect(url_for("recovery.portal"))
+
+    from models import UpdateRequest
+    from datetime import datetime
+    req_type = request.form.get("request_type", "")
+
+    if req_type == "photo":
+        if "photo" not in request.files or not request.files["photo"].filename:
+            flash("Please select a photo to upload.", "danger")
+            return redirect(url_for("recovery.profile"))
+
+        file = request.files["photo"]
+        if not _allowed_photo(file.filename):
+            flash("Invalid file type. Please upload a JPG or PNG photo.", "danger")
+            return redirect(url_for("recovery.profile"))
+
+        from services.cloud_storage import upload_photo
+        unique_name = upload_photo(file)
+
+        existing = UpdateRequest.query.filter_by(user_id=user.id, request_type="photo", status="pending").first()
+        if existing:
+            existing.new_value  = unique_name
+            existing.created_at = datetime.utcnow()
+        else:
+            db.session.add(UpdateRequest(user_id=user.id, request_type="photo", new_value=unique_name))
+        db.session.commit()
+
+        flash("📷 Photo update request submitted! Admin will review it shortly.", "success")
+
+    elif req_type == "hostel":
+        new_hostel = request.form.get("new_value", "").strip()
+        if not new_hostel:
+            flash("Please enter a new hostel name.", "danger")
+            return redirect(url_for("recovery.profile"))
+
+        existing = UpdateRequest.query.filter_by(user_id=user.id, request_type="hostel", status="pending").first()
+        if existing:
+            existing.new_value  = new_hostel
+            existing.created_at = datetime.utcnow()
+        else:
+            db.session.add(UpdateRequest(user_id=user.id, request_type="hostel", new_value=new_hostel))
+        db.session.commit()
+
+        flash("🏠 Hostel name change request submitted! Admin will review it shortly.", "success")
+
+    else:
+        flash("Invalid request type.", "danger")
+
+    return redirect(url_for("recovery.profile"))

@@ -107,8 +107,23 @@ def verify():
         log_scan(user_id=user.id, token_used=token_value, result="expired", location=location)
         return render_template("verify/invalid.html", reason="not_found"), 200
 
+    # --- Check for cross-hostel entry ---
+    from flask import g
+    active_scanner = getattr(g, 'active_scanner', None)
+    is_cross_hostel = False
+    
+    if active_scanner and active_scanner.scanner_type == 'hostel':
+        student_hostel = (user.hostel_name or "").lower().strip()
+        assigned_hostel = (active_scanner.assigned_hostel or "").lower().strip()
+        if student_hostel != assigned_hostel:
+            is_cross_hostel = True
+
     # --- Log successful scan ---
-    log_scan(user_id=user.id, token_used=token_value, result="success", location=location)
+    scan_log = log_scan(user_id=user.id, token_used=token_value, result="success", location=location)
+    
+    if is_cross_hostel:
+        scan_log.is_cross_hostel = True
+        db.session.commit()
 
     # --- Photo update check ---
     hard_block, scans_remaining = _check_photo_update_status(user)
@@ -122,6 +137,7 @@ def verify():
             sig=signature,
             no_photo=(not user.photo),
             college=current_app.config["COLLEGE_NAME"],
+            is_profile_preview=False
         )
 
     # --- Anomaly check ---
@@ -147,153 +163,9 @@ def verify():
         pending_photo=pending_photo,
         pending_hostel=pending_hostel,
         qr_data_uri=qr_data_uri,
+        is_cross_hostel=is_cross_hostel,
+        scan_log=scan_log,
+        active_scanner=active_scanner,
     )
 
 
-# ---------------------------------------------------------------------------
-# Photo Update (student self-service, token-authenticated)
-# ---------------------------------------------------------------------------
-
-@verify_bp.route("/verify/update-photo", methods=["POST"])
-@limiter.limit("5 per minute")
-def update_photo():
-    """Allow a student to upload a new profile photo by proving their QR token.
-
-    The token + HMAC signature are passed as hidden form fields so this
-    endpoint can identify and authenticate the student without a separate
-    login system. The QR code itself is never regenerated.
-    """
-    token_value = request.form.get("token", "")
-    signature = request.form.get("sig", "")
-
-    # Re-validate the HMAC token so we know the upload is legitimate
-    token_obj, error = validate_token(token_value, signature)
-    if error:
-        return render_template("verify/photo_update.html",
-                               upload_error="Invalid security token. Please scan your QR code again.",
-                               token=token_value, sig=signature,
-                               college=current_app.config["COLLEGE_NAME"]), 400
-
-    user = token_obj.user
-
-    # Validate file
-    if "photo" not in request.files or not request.files["photo"].filename:
-        return render_template(
-            "verify/photo_update.html",
-            user=user, token=token_value, sig=signature,
-            no_photo=(not user.photo),
-            upload_error="Please select a photo to upload.",
-            college=current_app.config["COLLEGE_NAME"],
-        )
-
-    file = request.files["photo"]
-    if not _allowed_photo(file.filename):
-        return render_template(
-            "verify/photo_update.html",
-            user=user, token=token_value, sig=signature,
-            no_photo=(not user.photo),
-            upload_error="Invalid file type. Please upload a JPG or PNG image.",
-            college=current_app.config["COLLEGE_NAME"],
-        )
-
-    # Save the new photo (Cloudinary or local)
-    from services.cloud_storage import upload_photo
-    photo_result = upload_photo(file)
-
-    # Update the user record — reset all warning state
-    user.photo = photo_result
-    user.photo_updated_at = datetime.utcnow()
-    user.photo_warning_scans = 0
-    db.session.commit()
-
-    # Redirect back to the verify page — will now show normal student info
-    return redirect(url_for("verify.verify", token=token_value, sig=signature))
-
-
-# ---------------------------------------------------------------------------
-# Submit Update Request (student self-service, token-authenticated)
-# ---------------------------------------------------------------------------
-
-@verify_bp.route("/verify/submit-request", methods=["POST"])
-@limiter.limit("5 per minute")
-def submit_request():
-    """Create a pending UpdateRequest so an admin can approve profile changes.
-
-    Supports:
-      • request_type=photo   → uploads provisional photo, admin approves/rejects
-      • request_type=hostel  → stores new hostel name, admin approves/rejects
-
-    The QR token + HMAC signature prove the student's identity.
-    Nothing is applied to the user record until an admin approves.
-    """
-    token_value = request.form.get("token", "")
-    signature   = request.form.get("sig", "")
-    req_type    = request.form.get("request_type", "")
-
-    token_obj, error = validate_token(token_value, signature)
-    if error:
-        return redirect(url_for("verify.verify", token=token_value, sig=signature))
-
-    user = token_obj.user
-
-    if req_type == "photo":
-        # --- Photo update request ---
-        if "photo" not in request.files or not request.files["photo"].filename:
-            from flask import flash
-            flash("Please select a photo to upload.", "danger")
-            return redirect(url_for("verify.verify", token=token_value, sig=signature))
-
-        file = request.files["photo"]
-        if not _allowed_photo(file.filename):
-            from flask import flash
-            flash("Invalid file type. Please upload a JPG or PNG photo.", "danger")
-            return redirect(url_for("verify.verify", token=token_value, sig=signature))
-
-        # Save pending photo (Cloudinary or local)
-        from services.cloud_storage import upload_photo
-        unique_name = upload_photo(file)
-
-        # Replace any existing pending photo request (student re-submitted)
-        existing = UpdateRequest.query.filter_by(
-            user_id=user.id, request_type="photo", status="pending"
-        ).first()
-        if existing:
-            existing.new_value  = unique_name
-            existing.created_at = datetime.utcnow()
-        else:
-            db.session.add(UpdateRequest(
-                user_id=user.id, request_type="photo", new_value=unique_name
-            ))
-        db.session.commit()
-
-        from flask import flash
-        flash("📷 Photo update request submitted! Admin will review it shortly.", "success")
-
-    elif req_type == "hostel":
-        # --- Hostel name update request ---
-        new_hostel = request.form.get("new_value", "").strip()
-        if not new_hostel:
-            from flask import flash
-            flash("Please enter a new hostel name.", "danger")
-            return redirect(url_for("verify.verify", token=token_value, sig=signature))
-
-        existing = UpdateRequest.query.filter_by(
-            user_id=user.id, request_type="hostel", status="pending"
-        ).first()
-        if existing:
-            existing.new_value  = new_hostel
-            existing.created_at = datetime.utcnow()
-        else:
-            db.session.add(UpdateRequest(
-                user_id=user.id, request_type="hostel", new_value=new_hostel
-            ))
-        db.session.commit()
-
-        from flask import flash
-        flash("🏠 Hostel name change request submitted! Admin will review it shortly.", "success")
-
-    else:
-        from flask import flash
-        flash("Invalid request type.", "danger")
-
-    return redirect(url_for("verify.verify", token=token_value, sig=signature))

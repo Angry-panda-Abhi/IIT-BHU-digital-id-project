@@ -34,6 +34,8 @@ class Scanner(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     plain_password = db.Column(db.String(255), nullable=True)
     location_name = db.Column(db.String(120), nullable=True)
+    scanner_type = db.Column(db.String(20), nullable=False, default="general", server_default="general")
+    assigned_hostel = db.Column(db.String(120), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     @property
@@ -126,6 +128,8 @@ class ScanLog(db.Model):
     user_agent = db.Column(db.String(512), nullable=True)
     result = db.Column(db.String(20), nullable=False)  # success / invalid / expired / rate_limited
     location = db.Column(db.String(120), nullable=True)  # scan location, e.g. "Library", "External"
+    is_cross_hostel = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
+    cross_hostel_reason = db.Column(db.String(255), nullable=True)
 
     def __repr__(self):
         return f"<ScanLog {self.result} @ {self.timestamp}>"

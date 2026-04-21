@@ -47,13 +47,10 @@
         {% endif %}
 
         <!-- Upload form -->
-        <form method="POST" action="{{ url_for('verify.update_photo') }}"
+        {% if is_profile_preview %}
+        <form method="POST" action="{{ url_for('recovery.update_photo') }}"
               enctype="multipart/form-data" class="photo-update-form" id="photo-upload-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-            <!-- Hidden auth fields — proves this upload is for the correct token -->
-            <input type="hidden" name="token" value="{{ token }}">
-            <input type="hidden" name="sig"   value="{{ sig }}">
 
             <!-- Drop zone / file picker -->
             <label class="photo-dropzone" for="photo-file-input" id="photo-dropzone">
@@ -76,6 +73,12 @@
                 <span id="submit-text">📤 Upload Photo</span>
             </button>
         </form>
+        {% else %}
+        <div style="text-align: center; margin-top: 20px; padding: 20px; background: rgba(255,255,255,0.05); border-radius: var(--radius-md);">
+            <p style="margin-bottom: 20px;">Please log into your securely verified Student Portal account to upload your new photo.</p>
+            <a href="{{ url_for('recovery.portal') }}" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: bold;">Login to Student Portal</a>
+        </div>
+        {% endif %}
 
         <!-- Footer note -->
         <p class="photo-update-note">
@@ -89,6 +92,7 @@
 
 {% block scripts %}
 <script>
+{% if is_profile_preview %}
 (function () {
     const input       = document.getElementById('photo-file-input');
     const dropzone    = document.getElementById('photo-dropzone');
@@ -151,5 +155,6 @@
         submitText.textContent = '⏳ Uploading…';
     });
 })();
+{% endif %}
 </script>
 {% endblock %}

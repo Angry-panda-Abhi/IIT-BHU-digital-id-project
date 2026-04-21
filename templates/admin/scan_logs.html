@@ -65,6 +65,20 @@
                         <span class="badge badge-{{ 'success' if log.result == 'success' else 'invalid' }}">
                             {{ log.result }}
                         </span>
+                        {% if log.is_cross_hostel %}
+                        <div style="margin-top: 4px;">
+                            <span class="badge" style="background: rgba(255, 152, 0, 0.15); color: #ff9800; font-size: 0.7rem; display: block; text-align: center;">CROSS-HOSTEL</span>
+                            {% if log.cross_hostel_reason %}
+                            <div style="font-size: 0.7rem; color: #ff9800; margin-top: 2px; font-style: italic; max-width: 150px; line-height: 1.1;">
+                                💬 {{ log.cross_hostel_reason }}
+                            </div>
+                            {% else %}
+                            <div style="font-size: 0.7rem; color: rgba(255, 152, 0, 0.5); margin-top: 2px; font-style: italic;">
+                                (Awaiting Reason...)
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </td>
                 </tr>
                 {% else %}

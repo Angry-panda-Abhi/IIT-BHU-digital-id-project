@@ -504,7 +504,8 @@ def export_scan_logs():
         "Hostel Name",
         "Location",
         "Timing (IST)",
-        "Result"
+        "Result",
+        "Cross-Hostel Reason"
     ])
     
     for log in logs:
@@ -523,7 +524,8 @@ def export_scan_logs():
             hostel,
             location,
             timing,
-            log.result
+            log.result,
+            log.cross_hostel_reason or "N/A"
         ])
         
     return Response(
@@ -560,6 +562,8 @@ def create_scanner():
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "").strip()
     location_name = request.form.get("location_name", "").strip()
+    scanner_type = request.form.get("scanner_type", "general").strip()
+    assigned_hostel = request.form.get("assigned_hostel", "").strip()
 
     errors = []
     if not all([username, password, location_name]):
@@ -580,6 +584,8 @@ def create_scanner():
         password_hash=hashed,
         location_name=location_name,
         plain_password=password,
+        scanner_type=scanner_type,
+        assigned_hostel=assigned_hostel if scanner_type == "hostel" else None
     )
     db.session.add(scanner)
     db.session.commit()

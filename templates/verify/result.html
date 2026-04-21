@@ -67,6 +67,37 @@
         </div>
         {% endif %}
 
+        {% if is_cross_hostel %}
+        <div id="cross-hostel-overlay" style="margin-top: 20px; background: rgba(255, 152, 0, 0.1); border: 2px solid #ff9800; border-radius: var(--radius-lg); padding: 20px; text-align: center; animation: pulse 2s infinite;">
+            <div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div>
+            <h2 style="color: #ff9800; font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Cross-Hostel Warning</h2>
+            <p style="font-size: 0.9rem; margin-bottom: 20px;">
+                This student is assigned to <strong>{{ user.hostel_name or 'No Hostel' }}</strong> but is attempting entry at <strong>{{ active_scanner.assigned_hostel }}</strong>.
+            </p>
+            
+            <form action="{{ url_for('scanner.submit_reason') }}" method="POST" id="reason-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="scan_log_id" value="{{ scan_log.id }}">
+                <div class="form-group" style="text-align: left;">
+                    <label class="form-label" for="entry-reason" style="color: #ff9800;">Reason for Entry (Mandatory)</label>
+                    <textarea id="entry-reason" name="reason" class="form-input" rows="3" 
+                              placeholder="e.g. Visiting friend, Emergency, Authorized by Warden..." 
+                              required style="background: rgba(0,0,0,0.3); border-color: #ff9800; color: white;"></textarea>
+                </div>
+                <button type="submit" class="btn" style="background: #ff9800; color: white; width: 100%; margin-top: 15px; font-weight: 700;">
+                    ✅ Log Entry & Continue
+                </button>
+            </form>
+        </div>
+        <style>
+            @keyframes pulse {
+                0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.4); }
+                70% { box-shadow: 0 0 0 15px rgba(255, 152, 0, 0); }
+                100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+            }
+        </style>
+        {% endif %}
+
         {% if blocked %}
         <div class="verify-blocked-msg">
             <p>
@@ -162,7 +193,7 @@
         {% endif %}
         {% endif %}
 
-        {% if not (current_user.is_authenticated or active_scanner) %}
+        {% if is_profile_preview %}
         {% if qr_data_uri %}
         <!-- View QR Code -->
         <div style="margin-top: var(--sp-lg); text-align: center; margin-bottom: var(--sp-md);">
@@ -181,7 +212,7 @@
         </div>
         {% endif %}
         {% endif %}
-        {% if not (current_user.is_authenticated or active_scanner) %}
+        {% if is_profile_preview %}
         <!-- Student Update Requests -->
         <div class="update-requests-panel"
             style="margin-top: var(--sp-lg); background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: var(--radius-lg); padding: var(--sp-md);">
@@ -207,12 +238,10 @@
                         {% endif %}
                     </div>
                     {% if not pending_photo %}
-                    <form id="photo-req-form" method="POST" action="{{ url_for('verify.submit_request') }}"
+                    <form id="photo-req-form" method="POST" action="{{ url_for('recovery.submit_request') }}"
                         enctype="multipart/form-data" class="d-none"
                         style="margin-top: var(--sp-sm); padding-top: var(--sp-sm); border-top: 1px dashed rgba(255,255,255,0.1);">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="token" value="{{ token }}">
-                        <input type="hidden" name="sig" value="{{ sig }}">
                         <input type="hidden" name="request_type" value="photo">
                         <div style="display: flex; gap: 8px;">
                             <input type="file" name="photo" accept=".png, .jpg, .jpeg" required
@@ -239,12 +268,10 @@
                         {% endif %}
                     </div>
                     {% if not pending_hostel %}
-                    <form id="hostel-req-form" method="POST" action="{{ url_for('verify.submit_request') }}"
+                    <form id="hostel-req-form" method="POST" action="{{ url_for('recovery.submit_request') }}"
                         class="d-none"
                         style="margin-top: var(--sp-sm); padding-top: var(--sp-sm); border-top: 1px dashed rgba(255,255,255,0.1);">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="token" value="{{ token }}">
-                        <input type="hidden" name="sig" value="{{ sig }}">
                         <input type="hidden" name="request_type" value="hostel">
                         <div style="display: flex; gap: 8px;">
                             <input type="text" name="new_value" placeholder="Enter new hostel name" required
@@ -260,7 +287,7 @@
         {% endif %}
 
         {% if (current_user.is_authenticated or active_scanner) and not is_profile_preview %}
-        <div style="margin-top: 32px; margin-bottom: 24px; text-align: center;">
+        <div id="scan-another-sec" style="margin-top: 32px; margin-bottom: 24px; text-align: center; {% if is_cross_hostel %}display: none;{% endif %}">
             <a href="{% if request.args.get('source') == 'admin' %}{{ url_for('admin.scanner') }}{% else %}{{ url_for('scanner.scan') }}{% endif %}"
                 class="btn btn-primary"
                 style="background: var(--success); width: 100%; border-radius: 8px; padding: 12px; font-weight: 700;">

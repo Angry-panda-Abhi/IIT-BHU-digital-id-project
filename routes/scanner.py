@@ -120,3 +120,25 @@ def export_scan_logs():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachment;filename=scanner_logs_export.csv"}
     )
+
+@scanner_bp.route("/submit-reason", methods=["POST"])
+@scanner_required
+def submit_reason():
+    """Submit a reason for cross-hostel entry."""
+    log_id = request.form.get("scan_log_id")
+    reason = request.form.get("reason", "").strip()
+
+    if not log_id or not reason:
+        flash("Reason is mandatory for cross-hostel entry.", "danger")
+        return redirect(request.referrer or url_for("scanner.dashboard"))
+
+    log = db.session.get(ScanLog, log_id)
+    if not log:
+        flash("Scan log not found.", "danger")
+        return redirect(url_for("scanner.dashboard"))
+
+    log.cross_hostel_reason = reason
+    db.session.commit()
+
+    flash("Cross-hostel entry reason logged successfully.", "success")
+    return redirect(url_for("scanner.scan"))
