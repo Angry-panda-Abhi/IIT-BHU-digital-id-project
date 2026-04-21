@@ -29,7 +29,7 @@
             <span style="font-size: 1.1rem;">🕒</span>
             <div>
                 <div style="font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.02em; font-size: 0.65rem; margin-bottom: 2px;">Last Scanned At</div>
-                <div style="font-weight: 500;">{{ previous_scan.location }} — {{ previous_scan.timestamp|to_ist }}</div>
+                <div style="font-weight: 700; color: white;">{{ previous_scan.location }} — {{ previous_scan.timestamp|to_ist }}</div>
             </div>
         </div>
         {% endif %}
@@ -297,7 +297,7 @@
         {% endif %}
 
         {% if (current_user.is_authenticated or active_scanner) and not is_profile_preview %}
-        <div id="scan-another-sec" style="margin-top: 32px; margin-bottom: 24px; text-align: center; {% if is_cross_hostel %}display: none;{% endif %}">
+        <div id="scan-another-sec" style="margin-top: 32px; margin-bottom: 24px; text-align: center;">
             <a href="{% if request.args.get('source') == 'admin' %}{{ url_for('admin.scanner') }}{% else %}{{ url_for('scanner.scan') }}{% endif %}"
                 class="btn btn-primary"
                 style="background: var(--success); width: 100%; border-radius: 8px; padding: 12px; font-weight: 700;">
