@@ -147,6 +147,7 @@ class UpdateRequest(db.Model):
     new_value   = db.Column(db.String(255), nullable=True)           # pending photo filename OR new hostel name
     status      = db.Column(db.String(20), default="pending", nullable=False)  # pending | approved | rejected
     rejection_note = db.Column(db.String(255), nullable=True)
+    reporter_info = db.Column(db.String(120), nullable=True)         # info about the reporter (e.g. scanner location)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
     reviewed_at = db.Column(db.DateTime, nullable=True)
 

@@ -142,3 +142,30 @@ def submit_reason():
 
     flash("Cross-hostel entry reason logged successfully.", "success")
     return redirect(url_for("scanner.scan"))
+
+@scanner_bp.route("/report-fraud", methods=["POST"])
+@scanner_required
+def report_fraud():
+    """Submit a request to deactivate a student ID (fraud report)."""
+    from models import UpdateRequest
+    user_id = request.form.get("user_id")
+    reason = request.form.get("reason", "").strip()
+    active_scanner = getattr(g, 'active_scanner')
+
+    if not user_id or not reason:
+        flash("Reason is mandatory for fraud reporting.", "danger")
+        return redirect(request.referrer or url_for("scanner.dashboard"))
+
+    # Create deactivation request
+    req = UpdateRequest(
+        user_id=user_id,
+        request_type="deactivate",
+        new_value=reason,
+        reporter_info=f"Scanner: {active_scanner.location_name} ({active_scanner.username})",
+        status="pending"
+    )
+    db.session.add(req)
+    db.session.commit()
+
+    flash("Fraud report submitted. The ID will be reviewed by administration.", "warning")
+    return redirect(url_for("scanner.scan"))

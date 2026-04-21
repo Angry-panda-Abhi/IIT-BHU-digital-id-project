@@ -61,6 +61,8 @@
                                 <span class="badge" style="background: rgba(67,45,109,0.3); color: var(--accent-light);">📷 Photo</span>
                             {% elif req.request_type == 'hostel' %}
                                 <span class="badge" style="background: rgba(0,150,136,0.2); color: #00bfa5;">🏠 Hostel</span>
+                            {% elif req.request_type == 'deactivate' %}
+                                <span class="badge" style="background: rgba(255, 82, 82, 0.2); color: #ff5252; border: 1px solid rgba(255, 82, 82, 0.3);">🚨 DEACTIVATE (FRAUD)</span>
                             {% endif %}
                         </td>
                         <td>
@@ -68,6 +70,9 @@
                                 <a href="{{ photo_url(req.new_value) }}" target="_blank" class="btn btn-sm" style="font-size: 0.75rem; padding: 2px 8px;">View Image</a>
                             {% else %}
                                 <strong style="color: var(--text-primary);">{{ req.new_value }}</strong>
+                            {% endif %}
+                            {% if req.reporter_info %}
+                                <div style="font-size: 0.7rem; color: var(--warning); margin-top: 4px; font-weight: 600;">🚩 Reported by: {{ req.reporter_info }}</div>
                             {% endif %}
                         </td>
                         

@@ -726,6 +726,15 @@ def approve_request(req_id):
         user.photo_warning_scans = 0
     elif req.request_type == "hostel":
         user.hostel_name = req.new_value
+    elif req.request_type == "deactivate":
+        # Deactivation logic (similar to delete student but marked as fraud)
+        user.status = "inactive"
+        # Archive student IDs to allow for future re-registration if needed
+        # We don't overwrite user.student_id here unless we want to "archive" it.
+        # Let's keep it inactive but revoke the token.
+        if user.token:
+            from services.token_service import revoke_token
+            revoke_token(user.id)
 
     req.status = "approved"
     req.reviewed_at = datetime.utcnow()
