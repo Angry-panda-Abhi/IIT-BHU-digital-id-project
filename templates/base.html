@@ -50,9 +50,18 @@
                         <li>
                             <a href="{{ url_for('admin.update_requests') }}"
                                class="{% if request.endpoint == 'admin.update_requests' %}active{% endif %}">
-                               Requests
-                               {% if pending_requests_count and pending_requests_count > 0 %}
-                               <span class="nav-badge">{{ pending_requests_count }}</span>
+                               Update Req.
+                               {% if pending_updates_count and pending_updates_count > 0 %}
+                               <span class="nav-badge">{{ pending_updates_count }}</span>
+                               {% endif %}
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('admin.registration_requests') }}"
+                               class="{% if request.endpoint == 'admin.registration_requests' %}active{% endif %}">
+                               Registrations
+                               {% if pending_registrations_count and pending_registrations_count > 0 %}
+                               <span class="nav-badge" style="background: var(--success);">{{ pending_registrations_count }}</span>
                                {% endif %}
                             </a>
                         </li>

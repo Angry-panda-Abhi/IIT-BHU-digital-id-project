@@ -151,5 +151,29 @@ class UpdateRequest(db.Model):
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
     reviewed_at = db.Column(db.DateTime, nullable=True)
 
+class RegistrationRequest(db.Model):
+    """Pending student application for a new digital ID card."""
+    __tablename__ = "registration_requests"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    student_id = db.Column(db.String(20), unique=True, nullable=False, index=True)
+    course = db.Column(db.String(100), nullable=False)
+    department = db.Column(db.String(100), nullable=True)
+    dob = db.Column(db.Date, nullable=True)
+    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
+    aadhar_number = db.Column(db.String(12), nullable=True)
+    father_name = db.Column(db.String(120), nullable=True)
+    contact_number = db.Column(db.String(15), nullable=True)
+    blood_group = db.Column(db.String(5), nullable=True)
+    hostel_name = db.Column(db.String(100), nullable=True)
+    home_address = db.Column(db.Text, nullable=True)
+    photo = db.Column(db.String(255), nullable=True)  # pending photo filename
+    
+    status = db.Column(db.String(20), default="pending", nullable=False)  # pending | approved | rejected
+    rejection_note = db.Column(db.String(255), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    reviewed_at = db.Column(db.DateTime, nullable=True)
+
     def __repr__(self):
-        return f"<UpdateRequest {self.request_type} user={self.user_id} [{self.status}]>"
+        return f"<RegistrationRequest {self.student_id} [{self.status}]>"

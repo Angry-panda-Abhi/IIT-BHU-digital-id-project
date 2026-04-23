@@ -3,7 +3,7 @@ Student Portal Route – Secure Google OAuth Login.
 """
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from extensions import db, limiter, oauth
-from models import User
+from models import User, RegistrationRequest
 
 recovery_bp = Blueprint("recovery", __name__, url_prefix="/recovery")
 
@@ -48,8 +48,15 @@ def callback():
         user = User.query.filter_by(email=email).first()
         
         if not user:
-            flash("No account exists for this email address. Please contact administration.", "danger")
-            return redirect(url_for("recovery.portal"))
+            # Check if they already have a pending registration request
+            pending = RegistrationRequest.query.filter_by(email=email, status="pending").first()
+            if pending:
+                flash("You have a pending registration request. Please wait for admin approval.", "info")
+                return redirect(url_for("recovery.portal"))
+                
+            session["registration_email"] = email
+            flash("No account exists for this email address. You can request a new Digital ID here.", "info")
+            return redirect(url_for("recovery.register"))
             
         if user.effective_status != "active":
             flash("This ID is inactive or expired. Contact administration.", "warning")
@@ -170,6 +177,7 @@ def update_photo():
     return redirect(url_for("recovery.profile"))
 
 
+
 @recovery_bp.route("/submit-request", methods=["POST"])
 @limiter.limit("5 per minute")
 def submit_request():
@@ -231,3 +239,100 @@ def submit_request():
         flash("Invalid request type.", "danger")
 
     return redirect(url_for("recovery.profile"))
+
+
+@recovery_bp.route("/register", methods=["GET", "POST"])
+@limiter.limit("5 per minute")
+def register():
+    """Registration form for new students."""
+    email = session.get("registration_email")
+    if not email:
+        flash("Please sign in with Google first.", "warning")
+        return redirect(url_for("recovery.portal"))
+
+    # If already exists in User table
+    if User.query.filter_by(email=email).first():
+        flash("You already have an account.", "info")
+        return redirect(url_for("recovery.portal"))
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        student_id = request.form.get("student_id", "").strip()
+        course = request.form.get("course", "").strip()
+        department = request.form.get("department", "").strip()
+        aadhar_number = request.form.get("aadhar_number", "").strip().replace(" ", "")
+        father_name = request.form.get("father_name", "").strip()
+        contact_number = request.form.get("contact_number", "").strip()
+        blood_group = request.form.get("blood_group", "").strip()
+        hostel_name = request.form.get("hostel_name", "").strip()
+        home_address = request.form.get("home_address", "").strip()
+        dob_str = request.form.get("dob", "")
+
+        errors = []
+        if not all([name, student_id, course, department]):
+            errors.append("Required fields are missing.")
+        
+        from datetime import date
+        dob = None
+        if dob_str:
+            try:
+                dob = date.fromisoformat(dob_str)
+            except ValueError:
+                errors.append("Invalid Date of Birth format.")
+
+        # Check for existing pending request with same Roll Number
+        if RegistrationRequest.query.filter_by(student_id=student_id, status="pending").first():
+            errors.append("A registration request for this Roll Number is already pending.")
+        
+        # Check if student_id already exists in User table
+        if User.query.filter_by(student_id=student_id).first():
+            errors.append("A student with this Roll Number is already registered.")
+
+        photo_filename = None
+        if "photo" in request.files:
+            file = request.files["photo"]
+            if file.filename:
+                from routes.admin import _allowed_file, _save_photo
+                if _allowed_file(file.filename):
+                    photo_filename = _save_photo(file)
+                else:
+                    errors.append("Invalid photo format. Use JPG or PNG.")
+        else:
+            errors.append("Profile photo is required.")
+
+        if errors:
+            for e in errors:
+                flash(e, "danger")
+            return render_template("recovery/register.html", email=email)
+
+        try:
+            from datetime import datetime
+            new_req = RegistrationRequest(
+                name=name,
+                student_id=student_id,
+                course=course,
+                department=department,
+                dob=dob,
+                email=email,
+                aadhar_number=aadhar_number,
+                father_name=father_name,
+                contact_number=contact_number,
+                blood_group=blood_group,
+                hostel_name=hostel_name,
+                home_address=home_address,
+                photo=photo_filename,
+                status="pending",
+                created_at=datetime.utcnow()
+            )
+            db.session.add(new_req)
+            db.session.commit()
+            
+            session.pop("registration_email", None)
+            flash("Registration request submitted! Admin will notify you once approved.", "success")
+            return redirect(url_for("recovery.portal"))
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Registration Error: {e}")
+            flash("An error occurred. Please try again later.", "danger")
+
+    return render_template("recovery/register.html", email=email)

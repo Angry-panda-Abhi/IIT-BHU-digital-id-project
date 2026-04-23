@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}Request Digital ID{% endblock %}
+
+{% block content %}
+<div class="auth-container fade-in">
+    <div class="card registration-card" style="max-width: 700px; margin: auto;">
+        <div class="text-center mb-lg">
+            <div class="icon-circle mb-md" style="background: rgba(108, 99, 255, 0.1); color: var(--accent-light);">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <h1 class="page-title">Digital ID Request</h1>
+            <p class="text-muted">Please provide your details for verification and ID generation.</p>
+        </div>
+
+        <form action="{{ url_for('recovery.register') }}" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="form-section">
+                <h3 class="section-subtitle mb-md">Personal Information</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Full Name (as per documents)</label>
+                        <input type="text" id="name" name="name" class="form-control" required placeholder="e.g. Rahul Kumar">
+                    </div>
+                    <div class="form-group">
+                        <label for="student_id">Roll Number / Student ID</label>
+                        <input type="text" id="student_id" name="student_id" class="form-control" required placeholder="e.g. 21013001">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Official Email</label>
+                        <input type="email" id="email" class="form-control" value="{{ email }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="dob">Date of Birth</label>
+                        <input type="date" id="dob" name="dob" class="form-control">
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-lg" style="opacity: 0.1;">
+
+            <div class="form-section">
+                <h3 class="section-subtitle mb-md">Academic Details</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="course">Course / Degree</label>
+                        <input type="text" id="course" name="course" class="form-control" required placeholder="e.g. B.Tech (CSE)">
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" name="department" class="form-control" required placeholder="e.g. Computer Science">
+                    </div>
+                    <div class="form-group">
+                        <label for="hostel_name">Hostel Name</label>
+                        <input type="text" id="hostel_name" name="hostel_name" class="form-control" placeholder="e.g. Vishvesvaraya Hostel">
+                    </div>
+                    <div class="form-group">
+                        <label for="blood_group">Blood Group</label>
+                        <select id="blood_group" name="blood_group" class="form-control">
+                            <option value="">Select Group</option>
+                            <option value="A+">A+</option>
+                            <option value="A-">A-</option>
+                            <option value="B+">B+</option>
+                            <option value="B-">B-</option>
+                            <option value="O+">O+</option>
+                            <option value="O-">O-</option>
+                            <option value="AB+">AB+</option>
+                            <option value="AB-">AB-</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-lg" style="opacity: 0.1;">
+
+            <div class="form-section">
+                <h3 class="section-subtitle mb-md">Additional Information</h3>
+                <div class="form-group">
+                    <label for="aadhar_number">Aadhar Number (Last 4 digits for verification)</label>
+                    <input type="text" id="aadhar_number" name="aadhar_number" class="form-control" placeholder="xxxx-xxxx-xxxx">
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="father_name">Father's Name</label>
+                        <input type="text" id="father_name" name="father_name" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact_number">Contact Number</label>
+                        <input type="tel" id="contact_number" name="contact_number" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="home_address">Home Address</label>
+                    <textarea id="home_address" name="home_address" class="form-control" rows="3"></textarea>
+                </div>
+            </div>
+
+            <hr class="my-lg" style="opacity: 0.1;">
+
+            <div class="form-section">
+                <h3 class="section-subtitle mb-md">Identity Photo</h3>
+                <div class="photo-upload-zone" id="drop-zone">
+                    <div class="photo-preview-container">
+                        <img id="photo-preview" src="#" alt="Preview" style="display: none; max-width: 150px; border-radius: 8px; margin-bottom: 1rem;">
+                    </div>
+                    <label for="photo" class="btn btn-secondary">
+                        <i class="fas fa-camera mr-sm"></i> Take or Select Photo
+                    </label>
+                    <input type="file" id="photo" name="photo" accept="image/*" class="hidden-input" required onchange="previewImage(this)">
+                    <p class="text-xs text-muted mt-md">JPG or PNG. Neutral background required.</p>
+                </div>
+            </div>
+
+            <div class="mt-xl">
+                <button type="submit" class="btn btn-primary btn-block py-md">
+                    Submit Registration Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .registration-card {
+        padding: var(--sp-xl);
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--sp-md);
+    }
+    @media (max-width: 600px) {
+        .form-grid { grid-template-columns: 1fr; }
+    }
+    .photo-upload-zone {
+        border: 2px dashed rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: var(--sp-lg);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    .photo-upload-zone:hover {
+        border-color: var(--accent-primary);
+        background: rgba(108, 99, 255, 0.05);
+    }
+    .hidden-input {
+        display: none;
+    }
+    .section-subtitle {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--accent-light);
+    }
+</style>
+
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('photo-preview');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'inline-block';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

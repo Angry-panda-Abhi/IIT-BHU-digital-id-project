@@ -14,7 +14,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
 from extensions import db, limiter, login_manager
-from models import Admin, User, Token, ScanLog, Scanner, UpdateRequest
+from models import Admin, User, Token, ScanLog, Scanner, UpdateRequest, RegistrationRequest
 from services.token_service import generate_token, get_active_token, revoke_token
 from services.qr_service import generate_qr_image, generate_qr_base64
 from services.pdf_service import generate_id_card_pdf
@@ -34,11 +34,16 @@ def load_user(user_id):
 
 @admin_bp.context_processor
 def inject_pending_requests():
-    """Inject the count of pending update requests into all admin templates."""
+    """Inject the count of pending update and registration requests into all admin templates."""
     if current_user.is_authenticated and current_user.is_superadmin:
-        count = UpdateRequest.query.filter_by(status="pending").count()
-        return dict(pending_requests_count=count)
-    return dict(pending_requests_count=0)
+        update_count = UpdateRequest.query.filter_by(status="pending").count()
+        reg_count = RegistrationRequest.query.filter_by(status="pending").count()
+        return dict(
+            pending_requests_count=update_count + reg_count,
+            pending_updates_count=update_count,
+            pending_registrations_count=reg_count
+        )
+    return dict(pending_requests_count=0, pending_updates_count=0, pending_registrations_count=0)
 
 
 # ---------------------------------------------------------------------------
@@ -769,3 +774,107 @@ def reject_request(req_id):
     db.session.commit()
     flash(f"Rejected {req.request_type} update for {req.user.name}.", "success")
     return redirect(url_for("admin.update_requests"))
+
+# ---------------------------------------------------------------------------
+# Registration Requests (New Student Applications)
+# ---------------------------------------------------------------------------
+
+@admin_bp.route("/registrations")
+@superadmin_required
+def registration_requests():
+    """View all pending student registration requests."""
+    status_filter = request.args.get("status", "pending")
+    reqs = RegistrationRequest.query.filter_by(status=status_filter).order_by(RegistrationRequest.created_at.desc()).all()
+    return render_template("admin/registrations.html", requests=reqs, current_filter=status_filter)
+
+
+@admin_bp.route("/registrations/<int:req_id>/approve", methods=["POST"])
+@superadmin_required
+def approve_registration(req_id):
+    """Approve a student registration, create a User, and generate QR."""
+    req = db.session.get(RegistrationRequest, req_id)
+    if not req or req.status != "pending":
+        flash("Registration request not found or already processed.", "danger")
+        return redirect(url_for("admin.registration_requests"))
+
+    # Check for conflicts again just in case
+    if User.query.filter_by(student_id=req.student_id).first():
+        flash(f"Verification Failed: Roll Number {req.student_id} is already registered.", "danger")
+        return redirect(url_for("admin.registration_requests"))
+
+    if User.query.filter_by(email=req.email).first():
+        flash(f"Verification Failed: Email {req.email} is already registered.", "danger")
+        return redirect(url_for("admin.registration_requests"))
+
+    validity_years = int(current_app.config.get("ID_VALIDITY_YEARS", 1))
+
+    try:
+        # 1. Create User
+        user = User(
+            name=req.name,
+            student_id=req.student_id,
+            course=req.course,
+            department=req.department,
+            dob=req.dob,
+            email=req.email,
+            aadhar_number=req.aadhar_number,
+            father_name=req.father_name,
+            contact_number=req.contact_number,
+            blood_group=req.blood_group,
+            hostel_name=req.hostel_name,
+            home_address=req.home_address,
+            photo=req.photo,
+            photo_updated_at=datetime.utcnow() if req.photo else None,
+            status="active",
+            expiry_date=date.today() + timedelta(days=365 * validity_years)
+        )
+        db.session.add(user)
+        db.session.flush() # Get user.id
+
+        # 2. Generate Token
+        token_obj = generate_token(user.id)
+
+        # 3. Send Email
+        qr_bytes = generate_qr_image(token_obj.token, token_obj.hmac_signature)
+        send_qr_email(user, qr_bytes)
+
+        # 4. Update Request Status
+        req.status = "approved"
+        req.reviewed_at = datetime.utcnow()
+        
+        db.session.commit()
+        flash(f"Registration approved! Student {user.name} created and emailed.", "success")
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Approval Error: {e}")
+        flash(f"System Error during approval: {str(e)}", "danger")
+
+    return redirect(url_for("admin.registration_requests"))
+
+
+@admin_bp.route("/registrations/<int:req_id>/reject", methods=["POST"])
+@superadmin_required
+def reject_registration(req_id):
+    """Reject a student registration application."""
+    req = db.session.get(RegistrationRequest, req_id)
+    if not req or req.status != "pending":
+        flash("Registration request not found or already processed.", "danger")
+        return redirect(url_for("admin.registration_requests"))
+
+    req.status = "rejected"
+    req.rejection_note = request.form.get("rejection_note", "").strip() or None
+    req.reviewed_at = datetime.utcnow()
+
+    # (Optional) Delete the photo file if it exists to save space
+    if req.photo:
+        try:
+            file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], req.photo)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            current_app.logger.warning(f"Failed to delete rejected registration photo {req.photo}: {e}")
+
+    db.session.commit()
+    flash(f"Registration request for {req.name} rejected.", "info")
+    return redirect(url_for("admin.registration_requests"))
