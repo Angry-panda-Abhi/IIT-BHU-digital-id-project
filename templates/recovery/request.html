@@ -50,45 +50,6 @@
                 </ul>
             </div>
         </div>
-
-        <!-- Info Cards -->
-        <div class="info-section">
-            <!-- Info Card 1 -->
-            <div class="info-card">
-                <div class="info-icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h3 class="info-title">Secure & Verified</h3>
-                <p class="info-text">Your identity is verified through Google OAuth with @itbhu.ac.in authentication. Only authorized IIT Varanasi students can access.</p>
-            </div>
-
-            <!-- Info Card 2 -->
-            <div class="info-card">
-                <div class="info-icon">
-                    <i class="fas fa-lock"></i>
-                </div>
-                <h3 class="info-title">Cryptographically Signed</h3>
-                <p class="info-text">Your QR code includes HMAC-SHA256 signatures to prevent tampering. Each verification is logged for security audit.</p>
-            </div>
-
-            <!-- Info Card 3 -->
-            <div class="info-card">
-                <div class="info-icon">
-                    <i class="fas fa-mobile-alt"></i>
-                </div>
-                <h3 class="info-title">Mobile Friendly</h3>
-                <p class="info-text">Show your digital ID at any campus scanner station. Your QR code is mobile-optimized and easy to scan.</p>
-            </div>
-
-            <!-- Info Card 4 -->
-            <div class="info-card">
-                <div class="info-icon">
-                    <i class="fas fa-bell"></i>
-                </div>
-                <h3 class="info-title">Real-time Updates</h3>
-                <p class="info-text">Request photo updates or hostel changes. Admin reviews and approves your requests. Get email notifications.</p>
-            </div>
-        </div>
     </div>
 
     <!-- Help Section -->
@@ -304,69 +265,6 @@
         color: var(--accent);
         width: 20px;
         text-align: center;
-    }
-
-    /* Info Section */
-    .info-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: var(--sp-lg);
-        max-width: 1200px;
-        margin: 0 auto var(--sp-3xl) auto;
-    }
-
-    @media (max-width: 1024px) {
-        .info-section {
-            grid-template-columns: 1fr 1fr;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .info-section {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    /* Info Card */
-    .info-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-lg);
-        padding: var(--sp-lg);
-        text-align: center;
-        transition: all var(--transition);
-        animation: fadeInUp 0.6s ease-out both;
-    }
-
-    .info-card:nth-child(1) { animation-delay: 0.2s; }
-    .info-card:nth-child(2) { animation-delay: 0.3s; }
-    .info-card:nth-child(3) { animation-delay: 0.4s; }
-    .info-card:nth-child(4) { animation-delay: 0.5s; }
-
-    .info-card:hover {
-        box-shadow: var(--shadow-lg);
-        border-color: var(--accent);
-        transform: translateY(-4px);
-    }
-
-    .info-icon {
-        font-size: 2.5rem;
-        color: var(--accent);
-        margin-bottom: var(--sp-md);
-    }
-
-    .info-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0 0 var(--sp-sm) 0;
-    }
-
-    .info-text {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        margin: 0;
-        line-height: 1.6;
     }
 
     /* Help Section */

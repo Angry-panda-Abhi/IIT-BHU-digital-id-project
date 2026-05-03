@@ -91,6 +91,7 @@ def verify():
     token_value = request.args.get("token", "")
     signature = request.args.get("sig", "")
     location = _get_scan_location()
+    is_external = location == "External"
 
     # --- Validate token + HMAC ---
     token_obj, error = validate_token(token_value, signature)
@@ -177,6 +178,7 @@ def verify():
         scan_log=scan_log,
         active_scanner=active_scanner,
         previous_scan=previous_scan,
+        is_external=is_external,
     )
 
 

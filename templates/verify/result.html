@@ -161,7 +161,7 @@
             </div>
             {% endif %}
 
-            {% if user.contact_number %}
+            {% if user.contact_number and not (is_external if is_external is defined else false) %}
             <div class="verify-info-card">
                 <div class="verify-info-icon">📞</div>
                 <div class="verify-info-content">
