@@ -5,7 +5,7 @@ Run:  python seed_admin.py
 import bcrypt
 from app import create_app
 from extensions import db
-from models import Admin, AdminRole
+from models import Admin
 
 
 def seed():
@@ -18,7 +18,7 @@ def seed():
         password = "SecureAdmin@2026"
         hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
-        admin = Admin(username="admin", password_hash=hashed, role=AdminRole.SUPERADMIN)
+        admin = Admin(username="admin", password_hash=hashed)
         db.session.add(admin)
         db.session.commit()
 

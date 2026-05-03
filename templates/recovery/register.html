@@ -4,170 +4,850 @@
 
 {% block content %}
 <div class="auth-container fade-in">
-    <div class="card registration-card" style="max-width: 700px; margin: auto;">
-        <div class="text-center mb-lg">
-            <div class="icon-circle mb-md" style="background: rgba(108, 99, 255, 0.1); color: var(--accent-light);">
-                <i class="fas fa-id-card"></i>
+    <div class="registration-wrapper">
+        <!-- Left Side: Header & Progress -->
+        <div class="registration-header">
+            <div class="header-content">
+                <div class="step-indicator">
+                    <span class="step-badge active">1</span>
+                    <span class="step-label">Your Details</span>
+                </div>
+                <h1 class="page-title">Digital ID Request Form</h1>
+                <p class="subtitle">Complete this form to request your secure Digital ID card</p>
+                <div class="info-callout">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>After Submission:</strong> Admin will verify your information and generate your ID. You'll receive an email confirmation shortly.
+                    </div>
+                </div>
             </div>
-            <h1 class="page-title">Digital ID Request</h1>
-            <p class="text-muted">Please provide your details for verification and ID generation.</p>
         </div>
 
-        <form action="{{ url_for('recovery.register') }}" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            
-            <div class="form-section">
-                <h3 class="section-subtitle mb-md">Personal Information</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="name">Full Name (as per documents)</label>
-                        <input type="text" id="name" name="name" class="form-control" required placeholder="e.g. Rahul Kumar">
+        <!-- Form Card -->
+        <div class="card registration-card">
+            <form action="{{ url_for('recovery.register') }}" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
+                <!-- Personal Information Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon"><i class="fas fa-user"></i></span>
+                        <div>
+                            <h3 class="section-title">Personal Information</h3>
+                            <p class="section-subtitle">Tell us who you are</p>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="student_id">Roll Number / Student ID</label>
-                        <input type="text" id="student_id" name="student_id" class="form-control" required placeholder="e.g. 21013001">
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Official Email</label>
-                        <input type="email" id="email" class="form-control" value="{{ email }}" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label for="dob">Date of Birth</label>
-                        <input type="date" id="dob" name="dob" class="form-control">
-                    </div>
-                </div>
-            </div>
-
-            <hr class="my-lg" style="opacity: 0.1;">
-
-            <div class="form-section">
-                <h3 class="section-subtitle mb-md">Academic Details</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="course">Course / Degree</label>
-                        <input type="text" id="course" name="course" class="form-control" required placeholder="e.g. B.Tech (CSE)">
-                    </div>
-                    <div class="form-group">
-                        <label for="department">Department</label>
-                        <input type="text" id="department" name="department" class="form-control" required placeholder="e.g. Computer Science">
-                    </div>
-                    <div class="form-group">
-                        <label for="hostel_name">Hostel Name</label>
-                        <input type="text" id="hostel_name" name="hostel_name" class="form-control" placeholder="e.g. Vishvesvaraya Hostel">
-                    </div>
-                    <div class="form-group">
-                        <label for="blood_group">Blood Group</label>
-                        <select id="blood_group" name="blood_group" class="form-control">
-                            <option value="">Select Group</option>
-                            <option value="A+">A+</option>
-                            <option value="A-">A-</option>
-                            <option value="B+">B+</option>
-                            <option value="B-">B-</option>
-                            <option value="O+">O+</option>
-                            <option value="O-">O-</option>
-                            <option value="AB+">AB+</option>
-                            <option value="AB-">AB-</option>
-                        </select>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">
+                                <i class="fas fa-user-circle"></i> Full Name
+                                <span class="required">*</span>
+                            </label>
+                            <input type="text" id="name" name="name" class="form-control" required placeholder="Your legal name as per documents">
+                            <small class="form-hint">As it appears on your government ID</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="student_id">
+                                <i class="fas fa-id-badge"></i> Roll Number
+                                <span class="required">*</span>
+                            </label>
+                            <input type="text" id="student_id" name="student_id" class="form-control" required placeholder="e.g. 21013001">
+                            <small class="form-hint">8-digit roll number</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">
+                                <i class="fas fa-envelope"></i> Official Email
+                                <span class="verified"><i class="fas fa-check-circle"></i> Verified</span>
+                            </label>
+                            <input type="email" id="email" class="form-control" value="{{ email }}" disabled>
+                            <small class="form-hint">Verified via Google OAuth</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="dob">
+                                <i class="fas fa-calendar"></i> Date of Birth
+                            </label>
+                            <input type="date" id="dob" name="dob" class="form-control">
+                            <small class="form-hint">Your birth date (YYYY-MM-DD)</small>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <hr class="my-lg" style="opacity: 0.1;">
-
-            <div class="form-section">
-                <h3 class="section-subtitle mb-md">Additional Information</h3>
-                <div class="form-group">
-                    <label for="aadhar_number">Aadhar Number (Last 4 digits for verification)</label>
-                    <input type="text" id="aadhar_number" name="aadhar_number" class="form-control" placeholder="xxxx-xxxx-xxxx">
+                <!-- Academic Details Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon"><i class="fas fa-graduation-cap"></i></span>
+                        <div>
+                            <h3 class="section-title">Academic Details</h3>
+                            <p class="section-subtitle">Your course and department info</p>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="course">
+                                <i class="fas fa-book"></i> Course / Degree
+                                <span class="required">*</span>
+                            </label>
+                            <input type="text" id="course" name="course" class="form-control" required placeholder="e.g. B.Tech, M.Tech, Ph.D">
+                            <small class="form-hint">Your degree program</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="department">
+                                <i class="fas fa-building"></i> Department
+                                <span class="required">*</span>
+                            </label>
+                            <input type="text" id="department" name="department" class="form-control" required placeholder="e.g. Computer Science & Engineering">
+                            <small class="form-hint">Your department name</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="hostel_name">
+                                <i class="fas fa-home"></i> Hostel Name
+                            </label>
+                            <input type="text" id="hostel_name" name="hostel_name" class="form-control" placeholder="e.g. Vishvesvaraya Hostel">
+                            <small class="form-hint">Your residential hostel</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="blood_group">
+                                <i class="fas fa-droplet"></i> Blood Group
+                            </label>
+                            <select id="blood_group" name="blood_group" class="form-control">
+                                <option value="">Select your blood group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                            </select>
+                            <small class="form-hint">For medical emergencies</small>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="father_name">Father's Name</label>
-                        <input type="text" id="father_name" name="father_name" class="form-control">
+
+                <!-- Additional Information Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon"><i class="fas fa-file-contract"></i></span>
+                        <div>
+                            <h3 class="section-title">Additional Information</h3>
+                            <p class="section-subtitle">Verification and contact details</p>
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label for="contact_number">Contact Number</label>
-                        <input type="tel" id="contact_number" name="contact_number" class="form-control">
+                        <label for="aadhar_number">
+                            <i class="fas fa-shield"></i> Aadhar Verification
+                        </label>
+                        <input type="text" id="aadhar_number" name="aadhar_number" class="form-control" placeholder="Enter last 4 digits: xxxx">
+                        <small class="form-hint">Last 4 digits only (for verification only, not stored)</small>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="father_name">
+                                <i class="fas fa-users"></i> Father's Name
+                            </label>
+                            <input type="text" id="father_name" name="father_name" class="form-control">
+                            <small class="form-hint">For emergency contact purposes</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact_number">
+                                <i class="fas fa-phone"></i> Contact Number
+                            </label>
+                            <input type="tel" id="contact_number" name="contact_number" class="form-control" placeholder="+91 XXXXXXXXXX">
+                            <small class="form-hint">Your mobile number</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="home_address">
+                            <i class="fas fa-map-marker-alt"></i> Home Address
+                        </label>
+                        <textarea id="home_address" name="home_address" class="form-control" rows="3" placeholder="Your permanent home address"></textarea>
+                        <small class="form-hint">Complete home address</small>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="home_address">Home Address</label>
-                    <textarea id="home_address" name="home_address" class="form-control" rows="3"></textarea>
-                </div>
-            </div>
 
-            <hr class="my-lg" style="opacity: 0.1;">
 
-            <div class="form-section">
-                <h3 class="section-subtitle mb-md">Identity Photo</h3>
-                <div class="photo-upload-zone" id="drop-zone">
-                    <div class="photo-preview-container">
-                        <img id="photo-preview" src="#" alt="Preview" style="display: none; max-width: 150px; border-radius: 8px; margin-bottom: 1rem;">
+                <!-- Photo Upload Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <span class="section-icon"><i class="fas fa-camera"></i></span>
+                        <div>
+                            <h3 class="section-title">Identity Photo</h3>
+                            <p class="section-subtitle">Clear passport-style photo</p>
+                        </div>
                     </div>
-                    <label for="photo" class="btn btn-secondary">
-                        <i class="fas fa-camera mr-sm"></i> Take or Select Photo
-                    </label>
-                    <input type="file" id="photo" name="photo" accept="image/*" class="hidden-input" required onchange="previewImage(this)">
-                    <p class="text-xs text-muted mt-md">JPG or PNG. Neutral background required.</p>
+                    <div class="photo-upload-container">
+                        <div class="photo-upload-zone" id="drop-zone">
+                            <div class="photo-preview-container" id="preview-wrapper" style="display: none;">
+                                <img id="photo-preview" src="#" alt="Preview" class="photo-preview-image">
+                                <button type="button" class="btn-clear-photo" onclick="clearPhoto()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                            <div class="upload-prompt" id="upload-prompt">
+                                <div class="upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <h4>Upload Your Photo</h4>
+                                <p>Drag and drop or click to select</p>
+                                <label for="photo" class="btn btn-outline">
+                                    <i class="fas fa-image"></i> Choose Photo
+                                </label>
+                            </div>
+                            <input type="file" id="photo" name="photo" accept="image/*" class="hidden-input" required onchange="previewImage(this)">
+                            <div class="photo-requirements">
+                                <p class="req-title">Photo Requirements:</p>
+                                <ul>
+                                    <li>JPG or PNG format</li>
+                                    <li>Neutral white/gray background</li>
+                                    <li>Clear face, front view</li>
+                                    <li>Recently taken (within 6 months)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="mt-xl">
-                <button type="submit" class="btn btn-primary btn-block py-md">
-                    Submit Registration Request
-                </button>
-            </div>
-        </form>
+                <!-- Terms & Conditions -->
+                <div class="form-section terms-section">
+                    <div class="terms-box">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="terms-agree" name="terms_agree" required>
+                            <label for="terms-agree" class="checkbox-label">
+                                <i class="fas fa-check-circle"></i>
+                                I confirm that all information provided is accurate and I authorize IIT Varanasi to generate my Digital ID card.
+                            </label>
+                        </div>
+                        <small class="terms-note">Your data is secure and will only be used for ID generation.</small>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane"></i> Submit Registration Request
+                    </button>
+                    <a href="{{ url_for('recovery.logout') }}" class="btn btn-outline">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 <style>
-    .registration-card {
-        padding: var(--sp-xl);
-        background: rgba(255, 255, 255, 0.03);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+    /* Registration Wrapper */
+    .registration-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--sp-lg);
     }
+
+    /* Header Section */
+    .registration-header {
+        margin-bottom: var(--sp-xl);
+        background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-lg);
+        border: 1px solid var(--border);
+    }
+
+    .header-content {
+        animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-indicator {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-md);
+        margin-bottom: var(--sp-md);
+    }
+
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: var(--accent);
+        color: white;
+        border-radius: 50%;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .step-label {
+        font-weight: 600;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
+    }
+
+    .registration-header .page-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: var(--sp-sm);
+        color: var(--accent);
+    }
+
+    .registration-header .subtitle {
+        color: var(--text-secondary);
+        font-size: 1rem;
+        margin-bottom: var(--sp-lg);
+    }
+
+    /* Info Callout */
+    .info-callout {
+        display: flex;
+        gap: var(--sp-md);
+        background: rgba(2, 136, 209, 0.08);
+        border-left: 4px solid var(--info);
+        padding: var(--sp-md);
+        border-radius: var(--radius-md);
+        margin-top: var(--sp-md);
+    }
+
+    .info-callout i {
+        color: var(--info);
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .info-callout div {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+    }
+
+    .info-callout strong {
+        color: var(--text-primary);
+    }
+
+    /* Registration Card */
+    .registration-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-xl);
+        box-shadow: var(--shadow-md);
+        animation: fadeInUp 0.6s ease-out 0.1s both;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Form Sections */
+    .form-section {
+        margin-bottom: var(--sp-xl);
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .form-section:nth-child(1) { animation-delay: 0.1s; }
+    .form-section:nth-child(2) { animation-delay: 0.2s; }
+    .form-section:nth-child(3) { animation-delay: 0.3s; }
+    .form-section:nth-child(4) { animation-delay: 0.4s; }
+    .form-section:nth-child(5) { animation-delay: 0.5s; }
+
+    .section-header {
+        display: flex;
+        align-items: flex-start;
+        gap: var(--sp-md);
+        margin-bottom: var(--sp-lg);
+        padding-bottom: var(--sp-lg);
+        border-bottom: 1px solid var(--border);
+    }
+
+    .section-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+        border-radius: var(--radius-lg);
+        color: var(--accent);
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+
+    .section-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-xs) 0;
+    }
+
+    .section-subtitle {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Form Grid */
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
+        gap: var(--sp-lg);
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Form Groups */
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--sp-sm);
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        font-size: 0.95rem;
+    }
+
+    .form-group label i {
+        color: var(--accent-light);
+        width: 18px;
+    }
+
+    .required {
+        color: var(--danger);
+        font-weight: 700;
+    }
+
+    .verified {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+        background: rgba(0, 166, 68, 0.1);
+        color: var(--success);
+        padding: 2px 8px;
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .verified i {
+        font-size: 0.85rem;
+    }
+
+    .form-control {
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        font-size: 0.95rem;
+        font-family: var(--font-main);
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        transition: all var(--transition);
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: var(--bg-secondary);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-control:disabled {
+        background: var(--bg-primary);
+        color: var(--text-muted);
+        cursor: not-allowed;
+    }
+
+    .form-hint {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    /* Photo Upload */
+    .photo-upload-container {
+        margin-bottom: var(--sp-lg);
+    }
+
+    .photo-upload-zone {
+        border: 2px dashed var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-xl);
+        text-align: center;
+        transition: all var(--transition);
+        background: linear-gradient(135deg, rgba(67, 45, 109, 0.02) 0%, transparent 100%);
+        position: relative;
+    }
+
+    .photo-upload-zone:hover {
+        border-color: var(--accent);
+        background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+    }
+
+    .photo-upload-zone.dragover {
+        border-color: var(--accent);
+        background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+        transform: scale(1.02);
+    }
+
+    .photo-preview-container {
+        position: relative;
+        display: inline-block;
+        margin-bottom: var(--sp-lg);
+    }
+
+    .photo-preview-image {
+        max-width: 180px;
+        max-height: 200px;
+        border-radius: var(--radius-lg);
+        border: 2px solid var(--border);
+        box-shadow: var(--shadow-md);
+        object-fit: cover;
+    }
+
+    .btn-clear-photo {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 36px;
+        height: 36px;
+        background: var(--danger);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        transition: all var(--transition);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-clear-photo:hover {
+        background: var(--accent-dark);
+        transform: scale(1.1);
+    }
+
+    .upload-prompt {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         gap: var(--sp-md);
     }
-    @media (max-width: 600px) {
-        .form-grid { grid-template-columns: 1fr; }
+
+    .upload-icon {
+        font-size: 3rem;
+        color: var(--accent-light);
     }
-    .photo-upload-zone {
-        border: 2px dashed rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: var(--sp-lg);
-        text-align: center;
-        transition: all 0.3s ease;
+
+    .upload-prompt h4 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--text-primary);
     }
-    .photo-upload-zone:hover {
-        border-color: var(--accent-primary);
-        background: rgba(108, 99, 255, 0.05);
+
+    .upload-prompt p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
     }
+
+    .btn-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        padding: 10px 20px;
+        border: 2px solid var(--accent);
+        background: transparent;
+        color: var(--accent);
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+    }
+
+    .btn-outline:hover {
+        background: var(--accent);
+        color: white;
+    }
+
+    .photo-requirements {
+        margin-top: var(--sp-lg);
+        text-align: left;
+        background: rgba(230, 81, 0, 0.05);
+        border-left: 3px solid var(--warning);
+        padding: var(--sp-md);
+        border-radius: var(--radius-md);
+    }
+
+    .req-title {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-sm) 0;
+        font-size: 0.9rem;
+    }
+
+    .photo-requirements ul {
+        margin: 0;
+        padding-left: var(--sp-lg);
+        list-style: none;
+    }
+
+    .photo-requirements li {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        padding: 4px 0;
+        position: relative;
+        padding-left: var(--sp-md);
+    }
+
+    .photo-requirements li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: var(--warning);
+        font-weight: 700;
+    }
+
     .hidden-input {
         display: none;
     }
-    .section-subtitle {
+
+    /* Terms Section */
+    .terms-section {
+        background: linear-gradient(135deg, rgba(0, 166, 68, 0.05) 0%, transparent 100%);
+        border: 1px solid rgba(0, 166, 68, 0.1);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-lg);
+    }
+
+    .terms-box {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-md);
+    }
+
+    .checkbox-group {
+        display: flex;
+        gap: var(--sp-md);
+        align-items: flex-start;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        margin-top: 2px;
+        cursor: pointer;
+        accent-color: var(--accent);
+        flex-shrink: 0;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        cursor: pointer;
+        margin: 0;
+        flex-direction: row;
+    }
+
+    .checkbox-label i {
         font-size: 1.1rem;
+    }
+
+    .terms-note {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        padding-left: 28px;
+    }
+
+    /* Form Actions */
+    .form-actions {
+        display: flex;
+        gap: var(--sp-md);
+        margin-top: var(--sp-xl);
+        padding-top: var(--sp-xl);
+        border-top: 1px solid var(--border);
+    }
+
+    .btn {
+        padding: 12px 24px;
+        border-radius: var(--radius-md);
         font-weight: 600;
-        color: var(--accent-light);
+        cursor: pointer;
+        transition: all var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--sp-sm);
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: white;
+        flex: 1;
+    }
+
+    .btn-primary:hover {
+        background: var(--accent-light);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--border);
+        color: var(--text-primary);
+        flex: 0 1 auto;
+    }
+
+    .btn-outline:hover {
+        background: var(--bg-primary);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .btn-lg {
+        padding: 14px 28px;
+        font-size: 1rem;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .registration-wrapper {
+            padding: var(--sp-md);
+        }
+
+        .registration-header {
+            padding: var(--sp-lg);
+        }
+
+        .registration-header .page-title {
+            font-size: 1.5rem;
+        }
+
+        .registration-card {
+            padding: var(--sp-lg);
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .form-grid { 
+            grid-template-columns: 1fr; 
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+        }
+
+        .registration-header .page-title {
+            font-size: 1.4rem;
+        }
+
+        .step-indicator {
+            justify-content: center;
+        }
     }
 </style>
 
 <script>
 function previewImage(input) {
     const preview = document.getElementById('photo-preview');
+    const previewWrapper = document.getElementById('preview-wrapper');
+    const uploadPrompt = document.getElementById('upload-prompt');
+    
     if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
             preview.src = e.target.result;
-            preview.style.display = 'inline-block';
+            previewWrapper.style.display = 'block';
+            uploadPrompt.style.display = 'none';
         }
         reader.readAsDataURL(input.files[0]);
     }
 }
+
+function clearPhoto() {
+    const photoInput = document.getElementById('photo');
+    const preview = document.getElementById('photo-preview');
+    const previewWrapper = document.getElementById('preview-wrapper');
+    const uploadPrompt = document.getElementById('upload-prompt');
+    
+    photoInput.value = '';
+    preview.src = '';
+    previewWrapper.style.display = 'none';
+    uploadPrompt.style.display = 'flex';
+}
+
+// Drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZone = document.getElementById('drop-zone');
+    const photoInput = document.getElementById('photo');
+    
+    if (!dropZone) return;
+    
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.add('dragover');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, () => {
+            dropZone.classList.remove('dragover');
+        }, false);
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        photoInput.files = files;
+        previewImage(photoInput);
+    }, false);
+});
 </script>
 {% endblock %}

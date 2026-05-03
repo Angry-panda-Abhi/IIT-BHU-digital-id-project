@@ -1,57 +1,546 @@
 {% extends "base.html" %}
 
-{% block title %}QR Code Recovered{% endblock %}
+{% block title %}Registration Submitted Successfully{% endblock %}
 
 {% block content %}
-<div class="recovery-container fade-in text-center">
-    <div class="mb-xl">
-        <div style="font-size: 2.5rem; margin-bottom: var(--sp-md);">🎉</div>
-        <h1 style="font-size: 1.5rem; font-weight: 800;">QR Code Recovered!</h1>
-        <p class="text-muted mt-sm">Your secure digital ID QR code is shown below</p>
+<div class="success-container">
+    <!-- Success Header -->
+    <div class="success-header">
+        <div class="success-icon-wrapper">
+            <div class="success-icon-circle">
+                <i class="fas fa-check"></i>
+            </div>
+        </div>
+        <h1 class="success-title">Registration Submitted!</h1>
+        <p class="success-subtitle">Your Digital ID request has been successfully submitted for review</p>
     </div>
 
-    <div class="card">
-        <!-- Student Info -->
-        <p style="font-weight: 600; font-size: 1.1rem;">{{ user.name }}</p>
-        <p class="text-muted" style="font-size: 0.9rem;">{{ user.course }}{% if user.department %} - {{ user.department }}{% endif %}</p>
-        <p class="text-muted mt-sm" style="font-size: 0.85rem;">
-            Student ID: <code style="color: var(--accent-light);">{{ user.student_id }}</code>
-        </p>
+    <!-- Main Content Card -->
+    <div class="success-content">
+        <!-- Status Timeline -->
+        <div class="timeline-section">
+            <h2 class="section-heading">What Happens Next?</h2>
+            <div class="timeline">
+                <div class="timeline-step completed">
+                    <div class="timeline-marker">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">Request Submitted</h3>
+                        <p class="timeline-text">Your application has been received</p>
+                        <p class="timeline-time">Just now</p>
+                    </div>
+                </div>
 
-        <!-- QR Code -->
-        <div class="qr-display">
-            <img src="{{ qr_data_uri }}" alt="Your QR Code" style="width: 220px; height: 220px;">
+                <div class="timeline-step pending">
+                    <div class="timeline-marker">
+                        <i class="fas fa-hourglass-half"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">Admin Verification</h3>
+                        <p class="timeline-text">Our team reviews your information and photo</p>
+                        <p class="timeline-time">1-2 hours typically</p>
+                    </div>
+                </div>
+
+                <div class="timeline-step pending">
+                    <div class="timeline-marker">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">ID Generated</h3>
+                        <p class="timeline-text">Your secure digital ID is created</p>
+                        <p class="timeline-time">Once verified</p>
+                    </div>
+                </div>
+
+                <div class="timeline-step pending">
+                    <div class="timeline-marker">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h3 class="timeline-title">Email Notification</h3>
+                        <p class="timeline-text">You'll receive confirmation and can access your ID</p>
+                        <p class="timeline-time">Immediate</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <p class="text-muted" style="font-size: 0.8rem;">
-            📸 Screenshot or save this QR code.<br>
-            ⚠️ Do not share it with anyone — it is uniquely linked to your identity.
-        </p>
-
-        <div class="mt-lg">
-            <span class="badge badge-active" style="font-size: 0.8rem; padding: 6px 16px;">
-                ● Valid until {{ user.expiry_date.strftime('%d %b %Y') }}
-            </span>
+        <!-- Confirmation Details -->
+        <div class="confirmation-section">
+            <h2 class="section-heading">Confirmation Details</h2>
+            <div class="confirmation-box">
+                <div class="confirmation-item">
+                    <div class="confirmation-label">
+                        <i class="fas fa-envelope"></i> Email
+                    </div>
+                    <div class="confirmation-value">{{ email }}</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">
+                        <i class="fas fa-clock"></i> Submitted At
+                    </div>
+                    <div class="confirmation-value">{{ now.strftime('%d %B %Y, %I:%M %p') if now else 'Just now' }}</div>
+                </div>
+                <div class="confirmation-item">
+                    <div class="confirmation-label">
+                        <i class="fas fa-hourglass-end"></i> Expected Time
+                    </div>
+                    <div class="confirmation-value">Within 24 hours</div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- View ID Card / Photo Update entry point -->
-    <div class="card mt-lg" style="border-color: rgba(67,45,109,0.25);">
-        <p style="font-weight: 600; font-size: 1rem; margin-bottom: var(--sp-sm);">👤 View Your Digital ID Card</p>
-        <p class="text-muted" style="font-size: 0.82rem; margin-bottom: var(--sp-md);">
-            Opens your live ID card — checks photo status, shows your full profile,
-            and lets you update your photo if needed.
-        </p>
-        <a href="{{ url_for('verify.verify', token=token_str, sig=sig) }}"
-           class="btn btn-primary"
-           style="width: 100%; justify-content: center; padding: 13px; font-size: 0.95rem;">
-            🪪 Open My ID Card
-        </a>
-    </div>
+        <!-- Important Notes -->
+        <div class="notes-section">
+            <h2 class="section-heading">Important Notes</h2>
+            <div class="notes-grid">
+                <div class="note-card">
+                    <div class="note-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <h3 class="note-title">Check Your Email</h3>
+                    <p class="note-text">We'll send you an email with your Digital ID QR code and access link once approved. Check your spam folder if you don't see it.</p>
+                </div>
 
-    <div class="mt-xl">
-        <a href="{{ url_for('index') }}" class="btn btn-ghost">← Back to Home</a>
+                <div class="note-card">
+                    <div class="note-icon">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                    <h3 class="note-title">Photo Guidelines</h3>
+                    <p class="note-text">If your photo is rejected, you can re-submit a better one. Use a clear, recent photo with a neutral background.</p>
+                </div>
+
+                <div class="note-card">
+                    <div class="note-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3 class="note-title">Secure Access</h3>
+                    <p class="note-text">You'll always access your Digital ID through this portal using your @itbhu.ac.in email. Keep your account secure.</p>
+                </div>
+
+                <div class="note-card">
+                    <div class="note-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="note-title">Show Your ID</h3>
+                    <p class="note-text">Once generated, you can show your digital ID at any campus location. Just scan the QR code with any scanner.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('recovery.login') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt"></i> Go to Student Portal
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary btn-lg">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+
+        <!-- Support Section -->
+        <div class="support-section">
+            <div class="support-box">
+                <h3 class="support-title">Need Help?</h3>
+                <p class="support-text">If you have any questions or issues with your registration, please contact our support team at <strong>admin@iitbhu.ac.in</strong> or visit the admin office during working hours.</p>
+            </div>
+        </div>
     </div>
 </div>
-{% endblock %}
 
+<style>
+    .success-container {
+        min-height: 100vh;
+        padding: var(--sp-lg);
+        background: linear-gradient(135deg, rgba(67, 45, 109, 0.03) 0%, transparent 100%);
+    }
+
+    /* Success Header */
+    .success-header {
+        text-align: center;
+        margin-bottom: var(--sp-3xl);
+        animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-icon-wrapper {
+        display: flex;
+        justify-content: center;
+        margin-bottom: var(--sp-lg);
+    }
+
+    .success-icon-circle {
+        width: 80px;
+        height: 80px;
+        background: var(--success);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2.5rem;
+        animation: scaleIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes scaleIn {
+        from { transform: scale(0); }
+        to { transform: scale(1); }
+    }
+
+    .success-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-md) 0;
+    }
+
+    .success-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Success Content */
+    .success-content {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-xl);
+        box-shadow: var(--shadow-md);
+        animation: fadeInUp 0.6s ease-out 0.2s both;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .section-heading {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-lg) 0;
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        border-bottom: 2px solid var(--border);
+        padding-bottom: var(--sp-lg);
+    }
+
+    /* Timeline */
+    .timeline-section {
+        margin-bottom: var(--sp-3xl);
+    }
+
+    .timeline {
+        position: relative;
+        padding: var(--sp-lg) 0;
+    }
+
+    .timeline-step {
+        display: flex;
+        gap: var(--sp-lg);
+        margin-bottom: var(--sp-lg);
+        position: relative;
+    }
+
+    .timeline-step:not(:last-child)::before {
+        content: '';
+        position: absolute;
+        left: 20px;
+        top: 60px;
+        width: 2px;
+        height: calc(100% + var(--sp-lg));
+        background: var(--border);
+    }
+
+    .timeline-step.completed::before {
+        background: var(--success);
+    }
+
+    .timeline-marker {
+        width: 40px;
+        height: 40px;
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        transition: all var(--transition);
+    }
+
+    .timeline-step.completed .timeline-marker {
+        background: var(--success);
+        border-color: var(--success);
+        color: white;
+        box-shadow: 0 0 0 3px rgba(0, 166, 68, 0.1);
+    }
+
+    .timeline-step.pending .timeline-marker {
+        background: rgba(230, 81, 0, 0.05);
+        border-color: var(--warning);
+        color: var(--warning);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(230, 81, 0, 0.3); }
+        50% { box-shadow: 0 0 0 6px rgba(230, 81, 0, 0.05); }
+    }
+
+    .timeline-content {
+        flex: 1;
+        padding: var(--sp-md);
+        background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+    }
+
+    .timeline-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-xs) 0;
+    }
+
+    .timeline-text {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0 0 var(--sp-sm) 0;
+    }
+
+    .timeline-time {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin: 0;
+        font-style: italic;
+    }
+
+    /* Confirmation Section */
+    .confirmation-section {
+        margin-bottom: var(--sp-3xl);
+    }
+
+    .confirmation-box {
+        background: linear-gradient(135deg, rgba(0, 166, 68, 0.05) 0%, transparent 100%);
+        border: 1px solid rgba(0, 166, 68, 0.1);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-lg);
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--sp-lg);
+    }
+
+    @media (max-width: 768px) {
+        .confirmation-box {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .confirmation-item {
+        display: flex;
+        flex-direction: column;
+        gap: var(--sp-sm);
+    }
+
+    .confirmation-label {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+    }
+
+    .confirmation-label i {
+        color: var(--success);
+        width: 16px;
+    }
+
+    .confirmation-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        word-break: break-word;
+    }
+
+    /* Notes Section */
+    .notes-section {
+        margin-bottom: var(--sp-3xl);
+    }
+
+    .notes-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--sp-lg);
+    }
+
+    @media (max-width: 768px) {
+        .notes-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .note-card {
+        background: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-lg);
+        text-align: center;
+        transition: all var(--transition);
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+    .note-card:nth-child(1) { animation-delay: 0.3s; }
+    .note-card:nth-child(2) { animation-delay: 0.4s; }
+    .note-card:nth-child(3) { animation-delay: 0.5s; }
+    .note-card:nth-child(4) { animation-delay: 0.6s; }
+
+    .note-card:hover {
+        border-color: var(--accent);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-4px);
+    }
+
+    .note-icon {
+        font-size: 2rem;
+        color: var(--accent);
+        margin-bottom: var(--sp-md);
+    }
+
+    .note-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-sm) 0;
+    }
+
+    .note-text {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--sp-lg);
+        margin-bottom: var(--sp-xl);
+    }
+
+    @media (max-width: 600px) {
+        .action-buttons {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .btn {
+        padding: 14px 24px;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--sp-sm);
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: white;
+        width: 100%;
+    }
+
+    .btn-primary:hover {
+        background: var(--accent-light);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+        background: var(--bg-primary);
+        border: 2px solid var(--border);
+        color: var(--text-primary);
+        width: 100%;
+    }
+
+    .btn-secondary:hover {
+        background: var(--bg-secondary);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+
+    .btn-lg {
+        padding: 16px 28px;
+        font-size: 1rem;
+    }
+
+    /* Support Section */
+    .support-section {
+        background: linear-gradient(135deg, rgba(2, 136, 209, 0.05) 0%, transparent 100%);
+        border-left: 4px solid var(--info);
+        border-radius: var(--radius-md);
+        padding: var(--sp-lg);
+        text-align: center;
+    }
+
+    .support-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-sm) 0;
+    }
+
+    .support-text {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    .support-text strong {
+        color: var(--text-primary);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .success-container {
+            padding: var(--sp-md);
+        }
+
+        .success-content {
+            padding: var(--sp-lg);
+        }
+
+        .success-title {
+            font-size: 1.6rem;
+        }
+
+        .success-icon-circle {
+            width: 70px;
+            height: 70px;
+            font-size: 2rem;
+        }
+    }
+</style>
+{% endblock %}

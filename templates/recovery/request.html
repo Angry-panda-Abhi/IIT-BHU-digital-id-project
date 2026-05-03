@@ -4,36 +4,498 @@
 
 {% block content %}
 <div class="recovery-container fade-in">
-    <div class="text-center mb-xl">
-        <div style="font-size: 2.5rem; margin-bottom: var(--sp-md);">🎓</div>
-        <h1 style="font-size: 1.5rem; font-weight: 800;">Student Portal</h1>
-        <p class="text-muted mt-sm">Sign in with your official @itbhu.ac.in account to view your digital ID card</p>
-    </div>
-
-    <div class="card text-center">
-        <a href="{{ url_for('recovery.login') }}" class="btn btn-primary btn-lg" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 600; background: white; color: #333; border: 1px solid #ddd;">
-            <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
-                <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
-                <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
-                <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
-                <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
-                <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
-                </g>
-            </svg>
-            Sign in with Google
-        </a>
-
-        <div class="mt-lg text-center">
-            <p class="text-muted" style="font-size: 0.8rem;">
-                🔒 Only authorized <strong>@itbhu.ac.in</strong> accounts can access the portal.<br>
-                Don't have an account? Sign in with Google above to request your Digital ID.
-            </p>
-            <div style="display: flex; justify-content: center; gap: 16px; margin-top: var(--sp-md); font-size: 0.85rem;">
-                <a href="{{ url_for('admin.login') }}" style="font-weight: 600;">🔐 Admin Portal</a>
-                <span style="color: var(--border);">|</span>
-                <a href="{{ url_for('scanner.login') }}" style="font-weight: 600;">📡 Scanner Login</a>
+    <!-- Header Section -->
+    <div class="portal-header">
+        <div class="header-content">
+            <div class="header-icon">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <div>
+                <h1 class="portal-title">Digital ID Student Portal</h1>
+                <p class="portal-subtitle">Manage your secure digital identity card for IIT Varanasi</p>
             </div>
         </div>
     </div>
+
+    <!-- Main Content -->
+    <div class="portal-grid">
+        <!-- Login Card -->
+        <div class="portal-card login-card">
+            <div class="card-icon">
+                <i class="fas fa-sign-in-alt"></i>
+            </div>
+            <h2 class="card-title">Access Your Portal</h2>
+            <p class="card-description">Sign in with your official @itbhu.ac.in email to view and manage your Digital ID</p>
+            
+            <a href="{{ url_for('recovery.login') }}" class="btn-google">
+                <svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="matrix(1, 0, 0, 1, 27.009001, -39.238998)">
+                    <path fill="#4285F4" d="M -3.264 51.509 C -3.264 50.719 -3.334 49.969 -3.454 49.239 L -14.754 49.239 L -14.754 53.749 L -8.284 53.749 C -8.574 55.229 -9.424 56.479 -10.684 57.329 L -10.684 60.329 L -6.824 60.329 C -4.564 58.239 -3.264 55.159 -3.264 51.509 Z"/>
+                    <path fill="#34A853" d="M -14.754 63.239 C -11.514 63.239 -8.804 62.159 -6.824 60.329 L -10.684 57.329 C -11.764 58.049 -13.134 58.489 -14.754 58.489 C -17.884 58.489 -20.534 56.379 -21.484 53.529 L -25.464 53.529 L -25.464 56.619 C -23.494 60.539 -19.444 63.239 -14.754 63.239 Z"/>
+                    <path fill="#FBBC05" d="M -21.484 53.529 C -21.734 52.809 -21.864 52.039 -21.864 51.239 C -21.864 50.439 -21.724 49.669 -21.484 48.949 L -21.484 45.859 L -25.464 45.859 C -26.284 47.479 -26.754 49.299 -26.754 51.239 C -26.754 53.179 -26.284 54.999 -25.464 56.619 L -21.484 53.529 Z"/>
+                    <path fill="#EA4335" d="M -14.754 43.989 C -12.984 43.989 -11.404 44.599 -10.154 45.789 L -6.734 42.369 C -8.804 40.429 -11.514 39.239 -14.754 39.239 C -19.444 39.239 -23.494 41.939 -25.464 45.859 L -21.484 48.949 C -20.534 46.099 -17.884 43.989 -14.754 43.989 Z"/>
+                    </g>
+                </svg>
+                Sign in with Google
+            </a>
+
+            <div class="login-benefits">
+                <p class="benefits-title">What you can do:</p>
+                <ul class="benefits-list">
+                    <li><i class="fas fa-qrcode"></i> View your Digital ID & QR code</li>
+                    <li><i class="fas fa-download"></i> Download ID card as PDF</li>
+                    <li><i class="fas fa-camera"></i> Update your photo</li>
+                    <li><i class="fas fa-building"></i> Change your hostel info</li>
+                    <li><i class="fas fa-history"></i> Track update requests</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-section">
+            <!-- Info Card 1 -->
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="info-title">Secure & Verified</h3>
+                <p class="info-text">Your identity is verified through Google OAuth with @itbhu.ac.in authentication. Only authorized IIT Varanasi students can access.</p>
+            </div>
+
+            <!-- Info Card 2 -->
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-lock"></i>
+                </div>
+                <h3 class="info-title">Cryptographically Signed</h3>
+                <p class="info-text">Your QR code includes HMAC-SHA256 signatures to prevent tampering. Each verification is logged for security audit.</p>
+            </div>
+
+            <!-- Info Card 3 -->
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3 class="info-title">Mobile Friendly</h3>
+                <p class="info-text">Show your digital ID at any campus scanner station. Your QR code is mobile-optimized and easy to scan.</p>
+            </div>
+
+            <!-- Info Card 4 -->
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <h3 class="info-title">Real-time Updates</h3>
+                <p class="info-text">Request photo updates or hostel changes. Admin reviews and approves your requests. Get email notifications.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="help-section">
+        <div class="help-content">
+            <h3 class="help-title">First time here?</h3>
+            <p class="help-text">If you don't have a Digital ID yet, sign in with Google to request one. Fill out the registration form with your details and upload a photo. Our admin team will verify and generate your ID within 24 hours.</p>
+            <p class="help-highlight">
+                <i class="fas fa-info-circle"></i>
+                <strong>Tip:</strong> Make sure to use your official @itbhu.ac.in email address for authentication.
+            </p>
+        </div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <div class="portal-footer">
+        <div class="footer-links">
+            <a href="{{ url_for('admin.login') }}" class="footer-link">
+                <i class="fas fa-lock"></i> Admin Portal
+            </a>
+            <span class="footer-divider">•</span>
+            <a href="{{ url_for('scanner.login') }}" class="footer-link">
+                <i class="fas fa-barcode"></i> Scanner Login
+            </a>
+            <span class="footer-divider">•</span>
+            <a href="mailto:admin@iitbhu.ac.in" class="footer-link">
+                <i class="fas fa-envelope"></i> Support
+            </a>
+        </div>
+        <p class="footer-note">🔒 Your data is secure and protected by IIT Varanasi security policies</p>
+    </div>
 </div>
+
+<style>
+    .recovery-container {
+        min-height: 100vh;
+        padding: var(--sp-lg);
+    }
+
+    /* Header Section */
+    .portal-header {
+        margin-bottom: var(--sp-3xl);
+        animation: slideDown 0.6s ease-out;
+    }
+
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .header-content {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-lg);
+        text-align: center;
+        flex-direction: column;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .header-icon {
+        font-size: 4rem;
+        color: var(--accent);
+        animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .portal-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-sm) 0;
+    }
+
+    .portal-subtitle {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Portal Grid */
+    .portal-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--sp-xl);
+        max-width: 1200px;
+        margin: 0 auto var(--sp-3xl) auto;
+    }
+
+    @media (max-width: 1024px) {
+        .portal-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Login Card */
+    .login-card {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        animation: fadeInUp 0.6s ease-out 0.1s both;
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .portal-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-xl);
+        box-shadow: var(--shadow-md);
+        transition: all var(--transition);
+    }
+
+    .portal-card:hover {
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent);
+    }
+
+    .card-icon {
+        font-size: 3rem;
+        color: var(--accent);
+        margin-bottom: var(--sp-lg);
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-md) 0;
+    }
+
+    .card-description {
+        font-size: 1rem;
+        color: var(--text-secondary);
+        margin: 0 0 var(--sp-lg) 0;
+    }
+
+    /* Google Button */
+    .btn-google {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 14px 24px;
+        background: white;
+        color: #333;
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md);
+        font-weight: 700;
+        font-size: 1rem;
+        text-decoration: none;
+        transition: all var(--transition);
+        margin-bottom: var(--sp-lg);
+        cursor: pointer;
+    }
+
+    .btn-google:hover {
+        background: var(--bg-primary);
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-google svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    /* Login Benefits */
+    .login-benefits {
+        width: 100%;
+        background: linear-gradient(135deg, var(--accent-glow) 0%, transparent 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: var(--sp-lg);
+        text-align: left;
+    }
+
+    .benefits-title {
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-md) 0;
+        font-size: 0.95rem;
+    }
+
+    .benefits-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .benefits-list li {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-md);
+        padding: var(--sp-sm) 0;
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+
+    .benefits-list i {
+        color: var(--accent);
+        width: 20px;
+        text-align: center;
+    }
+
+    /* Info Section */
+    .info-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--sp-lg);
+        max-width: 1200px;
+        margin: 0 auto var(--sp-3xl) auto;
+    }
+
+    @media (max-width: 1024px) {
+        .info-section {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .info-section {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Info Card */
+    .info-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-lg);
+        text-align: center;
+        transition: all var(--transition);
+        animation: fadeInUp 0.6s ease-out both;
+    }
+
+    .info-card:nth-child(1) { animation-delay: 0.2s; }
+    .info-card:nth-child(2) { animation-delay: 0.3s; }
+    .info-card:nth-child(3) { animation-delay: 0.4s; }
+    .info-card:nth-child(4) { animation-delay: 0.5s; }
+
+    .info-card:hover {
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent);
+        transform: translateY(-4px);
+    }
+
+    .info-icon {
+        font-size: 2.5rem;
+        color: var(--accent);
+        margin-bottom: var(--sp-md);
+    }
+
+    .info-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-sm) 0;
+    }
+
+    .info-text {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0;
+        line-height: 1.6;
+    }
+
+    /* Help Section */
+    .help-section {
+        background: linear-gradient(135deg, rgba(2, 136, 209, 0.05) 0%, transparent 100%);
+        border: 1px solid rgba(2, 136, 209, 0.1);
+        border-radius: var(--radius-lg);
+        padding: var(--sp-xl);
+        margin-bottom: var(--sp-3xl);
+        max-width: 1200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .help-content {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .help-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0 0 var(--sp-md) 0;
+    }
+
+    .help-text {
+        font-size: 0.95rem;
+        color: var(--text-secondary);
+        margin: 0 0 var(--sp-md) 0;
+        line-height: 1.6;
+    }
+
+    .help-highlight {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-sm);
+        background: rgba(2, 136, 209, 0.1);
+        border-left: 3px solid var(--info);
+        padding: var(--sp-md);
+        border-radius: var(--radius-sm);
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    .help-highlight i {
+        color: var(--info);
+        flex-shrink: 0;
+    }
+
+    .help-highlight strong {
+        color: var(--text-primary);
+    }
+
+    /* Portal Footer */
+    .portal-footer {
+        text-align: center;
+        padding: var(--sp-lg);
+        border-top: 1px solid var(--border);
+        margin-top: var(--sp-xl);
+    }
+
+    .footer-links {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--sp-md);
+        margin-bottom: var(--sp-md);
+        flex-wrap: wrap;
+    }
+
+    .footer-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        transition: all var(--transition);
+        font-size: 0.9rem;
+    }
+
+    .footer-link:hover {
+        color: var(--accent-light);
+        transform: translateY(-2px);
+    }
+
+    .footer-divider {
+        color: var(--border);
+    }
+
+    .footer-note {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .recovery-container {
+            padding: var(--sp-md);
+        }
+
+        .portal-title {
+            font-size: 1.6rem;
+        }
+
+        .portal-subtitle {
+            font-size: 1rem;
+        }
+
+        .header-icon {
+            font-size: 3rem;
+        }
+
+        .login-card {
+            grid-column: 1;
+        }
+
+        .portal-grid {
+            gap: var(--sp-lg);
+        }
+
+        .footer-links {
+            gap: var(--sp-sm);
+            font-size: 0.85rem;
+        }
+    }
+</style>
 {% endblock %}
