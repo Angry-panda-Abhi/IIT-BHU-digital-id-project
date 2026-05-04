@@ -288,15 +288,27 @@ def register():
             except ValueError:
                 errors.append("Invalid Date of Birth format.")
 
-        # Check for existing pending request with same Roll Number
+        # Check for existing pending requests - block new submission
         if RegistrationRequest.query.filter_by(student_id=student_id, status="pending").first():
             errors.append("A registration request for this Roll Number is already pending.")
         
-        # Check for rejected request with same Roll Number and delete it to allow reapplication
-        rejected_req = RegistrationRequest.query.filter_by(student_id=student_id, status="rejected").first()
-        if rejected_req:
-            # Delete the old rejected request to allow fresh reapplication
-            db.session.delete(rejected_req)
+        # Also check for pending request with same email (shouldn't happen but be safe)
+        if not errors and RegistrationRequest.query.filter_by(email=email, status="pending").first():
+            errors.append("You already have a pending registration request. Please wait for admin approval.")
+        
+        # Clean up any rejected requests to allow reapplication
+        # Delete rejected request by student_id (unique constraint)
+        rejected_by_id = RegistrationRequest.query.filter_by(student_id=student_id, status="rejected").first()
+        if rejected_by_id:
+            db.session.delete(rejected_by_id)
+        
+        # Delete rejected request by email (unique constraint)  
+        rejected_by_email = RegistrationRequest.query.filter_by(email=email, status="rejected").first()
+        if rejected_by_email:
+            db.session.delete(rejected_by_email)
+        
+        # Commit all deletions at once
+        if rejected_by_id or rejected_by_email:
             db.session.commit()
         
         # Check if student_id already exists in User table
