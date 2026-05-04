@@ -53,6 +53,14 @@ def callback():
             if pending:
                 flash("You have a pending registration request. Please wait for admin approval.", "info")
                 return redirect(url_for("recovery.portal"))
+            
+            # Check if they have a rejected request (allow them to reapply)
+            rejected = RegistrationRequest.query.filter_by(email=email, status="rejected").first()
+            if rejected:
+                flash(f"Your previous registration was rejected: {rejected.rejection_note or 'No reason provided'}. You can submit a new application.", "info")
+                # Delete the rejected request to allow fresh reapplication
+                db.session.delete(rejected)
+                db.session.commit()
                 
             session["registration_email"] = email
             flash("No account exists for this email address. You can request a new Digital ID here.", "info")
@@ -283,6 +291,13 @@ def register():
         # Check for existing pending request with same Roll Number
         if RegistrationRequest.query.filter_by(student_id=student_id, status="pending").first():
             errors.append("A registration request for this Roll Number is already pending.")
+        
+        # Check for rejected request with same Roll Number and delete it to allow reapplication
+        rejected_req = RegistrationRequest.query.filter_by(student_id=student_id, status="rejected").first()
+        if rejected_req:
+            # Delete the old rejected request to allow fresh reapplication
+            db.session.delete(rejected_req)
+            db.session.commit()
         
         # Check if student_id already exists in User table
         if User.query.filter_by(student_id=student_id).first():
