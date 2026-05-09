@@ -1,27 +1,15 @@
-"""
-Cloud storage service – upload images to Cloudinary.
-Falls back to local storage if Cloudinary is not configured.
-"""
 import os
 import io
 from flask import current_app
 
 
 def is_cloudinary_configured():
-    """Check if Cloudinary credentials are set."""
+    
     return bool(current_app.config.get("CLOUDINARY_URL"))
 
 
 def upload_photo(file_storage, folder="student_photos"):
-    """Upload a photo and return either a Cloudinary URL or local filename.
     
-    Args:
-        file_storage: werkzeug FileStorage object
-        folder: Cloudinary folder name
-    
-    Returns:
-        str: Cloudinary URL if configured, otherwise local filename
-    """
     if is_cloudinary_configured():
         return _upload_to_cloudinary(file_storage, folder)
     else:
@@ -29,15 +17,7 @@ def upload_photo(file_storage, folder="student_photos"):
 
 
 def upload_photo_from_path(filepath, folder="student_photos"):
-    """Upload a photo from a local file path to Cloudinary.
     
-    Args:
-        filepath: absolute path to the file
-        folder: Cloudinary folder name
-    
-    Returns:
-        str: Cloudinary URL if configured, otherwise the original filename
-    """
     if is_cloudinary_configured():
         import cloudinary.uploader
         result = cloudinary.uploader.upload(
@@ -52,14 +32,14 @@ def upload_photo_from_path(filepath, folder="student_photos"):
 
 
 def _upload_to_cloudinary(file_storage, folder):
-    """Upload to Cloudinary and return the secure URL with error handling."""
+    
     import cloudinary.uploader
     from flask import flash
 
     try:
-        # Read file into memory
+
         file_bytes = file_storage.read()
-        file_storage.seek(0)  # Reset for any subsequent reads
+        file_storage.seek(0)
 
         result = cloudinary.uploader.upload(
             io.BytesIO(file_bytes),
@@ -72,12 +52,12 @@ def _upload_to_cloudinary(file_storage, folder):
     except Exception as e:
         current_app.logger.error(f"❌ Cloudinary upload failed: {e}")
         flash(f"Cloudinary upload failed ({e}). Saving locally instead.", "warning")
-        # Fall back to local storage
+
         return _save_locally(file_storage)
 
 
 def _save_locally(file_storage):
-    """Save to local static/uploads and return the filename."""
+    
     import time
     from werkzeug.utils import secure_filename
 
@@ -90,14 +70,10 @@ def _save_locally(file_storage):
 
 
 def get_photo_url(photo_value):
-    """Return the correct URL for a photo value.
     
-    If it's a full URL (Cloudinary), return as-is.
-    If it's a local filename, return the static path.
-    """
     if not photo_value:
         return None
     if photo_value.startswith("http"):
         return photo_value
-    # Local file — will be resolved by url_for in templates
-    return None  # Signal to use url_for('static', ...) in template
+
+    return None

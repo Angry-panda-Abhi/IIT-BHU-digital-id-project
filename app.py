@@ -1,11 +1,8 @@
-"""
-Flask application factory.
-"""
 import os
 import logging
 from dotenv import load_dotenv
 
-load_dotenv()  # Load environment variables from .env file
+load_dotenv()
 
 from flask import Flask, render_template, url_for
 from config import Config
@@ -16,11 +13,11 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Ensure directories exist
+
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     os.makedirs(os.path.join(app.instance_path), exist_ok=True)
 
-    # Initialize extensions
+
     from extensions import db, login_manager, limiter, mail, csrf, oauth
     
     db.init_app(app)
@@ -30,7 +27,7 @@ def create_app(config_class=Config):
     csrf.init_app(app)
     oauth.init_app(app)
 
-    # Register Google OAuth Client
+
     oauth.register(
         name='google',
         client_id=app.config.get("GOOGLE_CLIENT_ID"),
@@ -41,14 +38,14 @@ def create_app(config_class=Config):
         }
     )
 
-    # Initialize Cloudinary if configured
+
     if app.config.get("CLOUDINARY_URL"):
         import cloudinary
         cloudinary.config(cloudinary_url=app.config["CLOUDINARY_URL"])
         app.logger.info("☁️ Cloudinary configured for photo storage.")
 
 
-    # Register blueprints
+
     from routes.admin import admin_bp
     from routes.scanner import scanner_bp
     from routes.verify import verify_bp
@@ -59,7 +56,7 @@ def create_app(config_class=Config):
     app.register_blueprint(verify_bp)
     app.register_blueprint(recovery_bp)
 
-    # Home / Landing – kills ALL active sessions (both admin + scanner)
+
     @app.route("/")
     def index():
         from flask_login import logout_user, current_user
@@ -69,7 +66,7 @@ def create_app(config_class=Config):
         session.pop("scanner_auth_id", None)
         return render_template("landing.html", college=app.config["COLLEGE_NAME"])
 
-    # Parallel Scanner Session Management
+
     @app.before_request
     def load_scanner_session():
         from flask import session, g
@@ -89,24 +86,24 @@ def create_app(config_class=Config):
 
     @app.context_processor
     def inject_photo_helper():
-        """Provide a photo_url() helper to all templates."""
+        
         def photo_url(photo_value):
             if not photo_value:
                 return None
             if photo_value.startswith("http"):
-                return photo_value  # Cloudinary URL
+                return photo_value
             return url_for('static', filename='uploads/' + photo_value)
         return dict(photo_url=photo_url)
 
     @app.template_filter('to_ist')
     def to_ist_filter(dt):
-        """Convert a UTC datetime to IST (UTC+5:30) for display."""
+        
         from datetime import timedelta
         if dt is None:
             return ""
         return (dt + timedelta(hours=5, minutes=30)).strftime('%d %b %Y, %I:%M:%S %p') + " IST"
 
-    # Prevent browser back-button from showing cached admin pages after logout
+
     @app.after_request
     def add_cache_control(response):
         from flask import request as req
@@ -116,7 +113,7 @@ def create_app(config_class=Config):
             response.headers["Expires"] = "0"
         return response
 
-    # Error handlers
+
     @app.errorhandler(404)
     def not_found(e):
         return render_template("errors/404.html"), 404
@@ -129,11 +126,11 @@ def create_app(config_class=Config):
     def server_error(e):
         return render_template("errors/500.html"), 500
 
-    # Create tables and auto-seed admin if database is empty
+
     with app.app_context():
         db.create_all()
 
-        # --- Auto-Migration to add new columns for cross-hostel features ---
+
         from sqlalchemy import text
         migrations = [
             "ALTER TABLE scanners ADD COLUMN IF NOT EXISTS scanner_type VARCHAR(20) NOT NULL DEFAULT 'general'",
@@ -144,12 +141,12 @@ def create_app(config_class=Config):
         ]
         for sql in migrations:
             try:
-                # We use raw text for ALTER TABLE because SQLAlchemy models alone won't trigger column additions on existing tables
+
                 db.session.execute(text(sql))
                 db.session.commit()
             except Exception as e:
                 db.session.rollback()
-                # Silently ignore if already exists (common on Postgres/SQLite depending on version)
+
                 if "already exists" not in str(e).lower() and "duplicate column" not in str(e).lower():
                     app.logger.warning(f"Migration notice: {str(e)[:100]}")
         
@@ -157,7 +154,7 @@ def create_app(config_class=Config):
         if not Admin.query.first():
             import bcrypt
             print("🌱 Seeding default admin account...")
-            # Use environment variable for initial password, fallback to default
+
             password = os.environ.get("INITIAL_ADMIN_PASSWORD", "SecureAdmin@2026")
             hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
             admin = Admin(username="admin", password_hash=hashed)
@@ -166,14 +163,14 @@ def create_app(config_class=Config):
             print(f"✅ Default admin 'admin' created. Password: {'[REDACTED]' if os.environ.get('INITIAL_ADMIN_PASSWORD') else password}")
 
 
-    # Logging
+
     if not app.debug:
         logging.basicConfig(level=logging.INFO)
 
     return app
 
 
-# Create the application instance for WSGI servers (Render/Gunicorn)
+
 app = create_app()
 
 if __name__ == "__main__":

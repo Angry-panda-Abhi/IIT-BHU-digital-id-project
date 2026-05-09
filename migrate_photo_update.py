@@ -1,22 +1,3 @@
-"""
-Safe DB migration: Photo Update Warning System.
-
-Adds two columns to the `users` table:
-  - photo_updated_at     DATETIME nullable  — when the photo was last set
-  - photo_warning_scans  INTEGER  default 0 — countdown warning scans shown
-
-Seeding logic for existing records:
-  • Users with a photo → photo_updated_at is set to their created_at date.
-    (If created_at < 6 months ago they'll get warnings on the next scan — correct.)
-  • Users without a photo → photo_updated_at stays NULL.
-    (They will hit the immediate hard-block on next scan — correct.)
-
-Idempotent – safe to run multiple times.
-
-Usage:
-    cd /home/abhi/Desktop/ExploProject
-    python migrate_photo_update.py
-"""
 import sqlite3
 import os
 import shutil
@@ -24,7 +5,7 @@ from datetime import datetime
 
 
 def get_db_path():
-    """Locate the SQLite database file."""
+    
     candidates = [
         os.path.join("instance", "college_id.db"),
         os.path.join("instance", "exploitation.db"),
@@ -46,7 +27,7 @@ def get_db_path():
 
 
 def column_exists(cursor, table, column):
-    """Check if a column exists in a table."""
+    
     cursor.execute(f"PRAGMA table_info({table})")
     return column in [row[1] for row in cursor.fetchall()]
 
@@ -60,7 +41,7 @@ def migrate():
 
     print(f"📂 Found database: {db_path}")
 
-    # --- Safety: create timestamped backup ---
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = f"{db_path}.backup_{timestamp}"
     shutil.copy2(db_path, backup_path)
@@ -71,7 +52,7 @@ def migrate():
     changes = 0
 
     try:
-        # --- users.photo_updated_at ---
+
         if not column_exists(cursor, "users", "photo_updated_at"):
             cursor.execute("ALTER TABLE users ADD COLUMN photo_updated_at DATETIME")
             print("  ✅ Added users.photo_updated_at")
@@ -79,7 +60,7 @@ def migrate():
         else:
             print("  ⏭️  users.photo_updated_at already exists – skipping")
 
-        # --- users.photo_warning_scans ---
+
         if not column_exists(cursor, "users", "photo_warning_scans"):
             cursor.execute(
                 "ALTER TABLE users ADD COLUMN photo_warning_scans INTEGER NOT NULL DEFAULT 0"
@@ -89,16 +70,10 @@ def migrate():
         else:
             print("  ⏭️  users.photo_warning_scans already exists – skipping")
 
-        # --- Seed photo_updated_at for existing users who have a photo ---
-        # Use created_at as a conservative approximation of when the photo was set.
+
+
         cursor.execute(
-            """
-            UPDATE users
-               SET photo_updated_at = created_at
-             WHERE photo IS NOT NULL
-               AND photo != ''
-               AND photo_updated_at IS NULL
-            """
+            
         )
         seeded = cursor.rowcount
         if seeded > 0:

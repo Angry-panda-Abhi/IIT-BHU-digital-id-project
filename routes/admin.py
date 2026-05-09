@@ -1,6 +1,3 @@
-"""
-Admin routes – authentication, student CRUD, QR management, scan logs, RBAC.
-"""
 import os
 from datetime import date, timedelta, datetime
 from functools import wraps
@@ -24,9 +21,9 @@ from services.security_service import get_scan_stats
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
-# ---------------------------------------------------------------------------
-# Flask-Login user loader
-# ---------------------------------------------------------------------------
+
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(Admin, int(user_id))
@@ -34,7 +31,7 @@ def load_user(user_id):
 
 @admin_bp.context_processor
 def inject_pending_requests():
-    """Inject the count of pending update and registration requests into all admin templates."""
+    
     if current_user.is_authenticated and current_user.is_superadmin:
         update_count = UpdateRequest.query.filter_by(status="pending").count()
         reg_count = RegistrationRequest.query.filter_by(status="pending").count()
@@ -46,11 +43,11 @@ def inject_pending_requests():
     return dict(pending_requests_count=0, pending_updates_count=0, pending_registrations_count=0)
 
 
-# ---------------------------------------------------------------------------
-# RBAC decorator – blocks scanner accounts from superadmin-only routes
-# ---------------------------------------------------------------------------
+
+
+
 def superadmin_required(f):
-    """Decorator: requires the logged-in admin to have the superadmin role."""
+    
     @wraps(f)
     @login_required
     def decorated(*args, **kwargs):
@@ -61,23 +58,23 @@ def superadmin_required(f):
     return decorated
 
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
+
+
+
 def _allowed_file(filename):
     allowed = current_app.config["ALLOWED_EXTENSIONS"]
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed
 
 
 def _save_photo(file):
-    """Save an uploaded photo and return a URL (Cloudinary) or filename (local)."""
+    
     from services.cloud_storage import upload_photo
     return upload_photo(file)
 
 
-# ---------------------------------------------------------------------------
-# Auth routes
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/login", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
 def login():
@@ -101,7 +98,7 @@ def login():
 
 @admin_bp.route("/logout")
 def logout():
-    """Main logout: Clears everything (Admin + Scanner)."""
+    
     from flask_login import logout_user
     if current_user.is_authenticated:
         logout_user()
@@ -110,9 +107,9 @@ def logout():
     return redirect(url_for("index"))
 
 
-# ---------------------------------------------------------------------------
-# Dashboard (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/")
 @admin_bp.route("/dashboard")
 @superadmin_required
@@ -141,9 +138,9 @@ def dashboard():
     )
 
 
-# ---------------------------------------------------------------------------
-# Create student (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/new", methods=["GET", "POST"])
 @superadmin_required
 def create_student():
@@ -161,7 +158,7 @@ def create_student():
         email = request.form.get("email", "").strip()
         validity_years = int(current_app.config.get("ID_VALIDITY_YEARS", 1))
 
-        # Validation
+
         errors = []
         if not all([name, student_id, course, department, email]):
             errors.append("All fields are required.")
@@ -213,7 +210,12 @@ def create_student():
             file = request.files["photo"]
             if file.filename:
                 if _allowed_file(file.filename):
-                    photo_filename = _save_photo(file)
+                    from services.face_detection_service import validate_photo_has_face
+                    face_valid, face_msg = validate_photo_has_face(file)
+                    if not face_valid:
+                        errors.append(face_msg)
+                    else:
+                        photo_filename = _save_photo(file)
                 else:
                     errors.append("Invalid photo format. Use JPG or PNG.")
 
@@ -245,7 +247,7 @@ def create_student():
             db.session.add(user)
             db.session.commit()
     
-            # Generate secure token + QR
+
             generate_token(user.id)
     
             flash(f"Student {name} created successfully!", "success")
@@ -260,13 +262,13 @@ def create_student():
     return render_template("admin/student_form.html", mode="create")
 
 
-# ---------------------------------------------------------------------------
-# View Student Profile (Admin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/<int:user_id>/profile")
 @login_required
 def view_profile(user_id):
-    """View a student's full digital ID card profile page."""
+    
     user = User.query.get_or_404(user_id)
     return render_template(
         "verify/result.html",
@@ -285,9 +287,9 @@ def view_profile(user_id):
 
 
 
-# ---------------------------------------------------------------------------
-# Edit student (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/<int:user_id>/edit", methods=["GET", "POST"])
 @superadmin_required
 def edit_student(user_id):
@@ -342,9 +344,14 @@ def edit_student(user_id):
             file = request.files["photo"]
             if file.filename:
                 if _allowed_file(file.filename):
+                    from services.face_detection_service import validate_photo_has_face
+                    face_valid, face_msg = validate_photo_has_face(file)
+                    if not face_valid:
+                        flash(face_msg, "danger")
+                        return render_template("admin/student_form.html", mode="edit", student=user, token=token)
                     user.photo = _save_photo(file)
                     user.photo_updated_at = datetime.utcnow()
-                    user.photo_warning_scans = 0  # reset warning countdown
+                    user.photo_warning_scans = 0
                 else:
                     flash("Invalid photo format.", "danger")
                     return render_template("admin/student_form.html", mode="edit", student=user, token=token)
@@ -356,16 +363,16 @@ def edit_student(user_id):
     return render_template("admin/student_form.html", mode="edit", student=user, token=token)
 
 
-# ---------------------------------------------------------------------------
-# Delete (deactivate) student (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/<int:user_id>/delete", methods=["POST"])
 @superadmin_required
 def delete_student(user_id):
     user = User.query.get_or_404(user_id)
     
-    # Soft archive the user to sidestep Postgres foreign key and NOT NULL strict constraints.
-    # We guarantee it fits in String(20) by using their unique primary key ID.
+
+
     user.status = "inactive"
     user.student_id = f"del_id_{user.id}"
     user.email = f"del_e_{user.id}@itbhu.ac.in"
@@ -379,9 +386,9 @@ def delete_student(user_id):
     return redirect(url_for("admin.dashboard"))
 
 
-# ---------------------------------------------------------------------------
-# Regenerate QR (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/<int:user_id>/regenerate", methods=["POST"])
 @superadmin_required
 def regenerate_qr(user_id):
@@ -393,9 +400,9 @@ def regenerate_qr(user_id):
     return redirect(url_for("admin.dashboard"))
 
 
-# ---------------------------------------------------------------------------
-# Download Raw QR Image (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/<int:user_id>/download-qr")
 @superadmin_required
 def download_qr(user_id):
@@ -416,9 +423,9 @@ def download_qr(user_id):
     )
 
 
-# ---------------------------------------------------------------------------
-# Download PDF ID Card (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/<int:user_id>/download-pdf")
 @superadmin_required
 def download_pdf(user_id):
@@ -438,9 +445,9 @@ def download_pdf(user_id):
     )
 
 
-# ---------------------------------------------------------------------------
-# Email QR to student (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/students/<int:user_id>/email-qr", methods=["POST"])
 @superadmin_required
 def email_qr(user_id):
@@ -459,9 +466,9 @@ def email_qr(user_id):
     return redirect(url_for("admin.dashboard"))
 
 
-# ---------------------------------------------------------------------------
-# Scan logs (both roles – scanners see only their location)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/scan-logs")
 @superadmin_required
 def scan_logs():
@@ -486,9 +493,9 @@ def scan_logs():
     return render_template("admin/scan_logs.html", logs=logs, search=search)
 
 
-# ---------------------------------------------------------------------------
-# Export Scan Logs to Excel (CSV) – both roles, filtered for scanners
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/scan-logs/export")
 @superadmin_required
 def export_scan_logs():
@@ -501,7 +508,7 @@ def export_scan_logs():
     output = io.StringIO()
     writer = csv.writer(output)
     
-    # Headers
+
     writer.writerow([
         "Student Name", 
         "Roll Number",
@@ -539,23 +546,23 @@ def export_scan_logs():
         headers={"Content-Disposition": "attachment;filename=scan_logs_export.csv"}
     )
 
-# ---------------------------------------------------------------------------
-# WebQR Scanner (Admin Privileged Room)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/scanner")
 @superadmin_required
 def scanner():
-    """Web-based QR scanner for superadmins."""
+    
     return render_template("admin/scanner.html")
 
 
-# ---------------------------------------------------------------------------
-# Scanner Account Management (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/scanners")
 @superadmin_required
 def manage_scanners():
-    """List all scanner accounts."""
+    
     scanners = Scanner.query.order_by(Scanner.created_at.desc()).all()
     return render_template("admin/manage_scanners.html", scanners=scanners)
 
@@ -563,7 +570,7 @@ def manage_scanners():
 @admin_bp.route("/scanners/create", methods=["POST"])
 @superadmin_required
 def create_scanner():
-    """Create a new scanner account."""
+    
     username = request.form.get("username", "").strip()
     password = request.form.get("password", "").strip()
     location_name = request.form.get("location_name", "").strip()
@@ -602,7 +609,7 @@ def create_scanner():
 @admin_bp.route("/scanners/<int:scanner_id>/delete", methods=["POST"])
 @superadmin_required
 def delete_scanner(scanner_id):
-    """Delete a scanner account."""
+    
     scanner = db.session.get(Scanner, scanner_id)
     if not scanner:
         flash("Scanner account not found.", "danger")
@@ -618,7 +625,7 @@ def delete_scanner(scanner_id):
 @admin_bp.route("/scanners/<int:scanner_id>/reset-password", methods=["POST"])
 @superadmin_required
 def reset_scanner_password(scanner_id):
-    """Reset a scanner account's password."""
+    
     scanner = db.session.get(Scanner, scanner_id)
     if not scanner:
         flash("Scanner account not found.", "danger")
@@ -636,9 +643,9 @@ def reset_scanner_password(scanner_id):
     return redirect(url_for("admin.manage_scanners"))
 
 
-# ---------------------------------------------------------------------------
-# Settings (superadmin only)
-# ---------------------------------------------------------------------------
+
+
+
 @admin_bp.route("/settings", methods=["GET", "POST"])
 @superadmin_required
 def settings():
@@ -664,14 +671,14 @@ def settings():
             new_pass = request.form.get("new_password", "")
             confirm_pass = request.form.get("confirm_password", "")
 
-            # Verify current password
+
             if not bcrypt.checkpw(current_pass.encode(), current_user.password_hash.encode()):
                 flash("Incorrect current password. Changes denied.", "danger")
                 return redirect(url_for("admin.settings"))
 
             changes_made = False
 
-            # Update Username
+
             if new_username and new_username != current_user.username:
                 from models import Admin
                 if Admin.query.filter_by(username=new_username).first():
@@ -680,7 +687,7 @@ def settings():
                     current_user.username = new_username
                     changes_made = True
 
-            # Update Password
+
             if new_pass:
                 if new_pass != confirm_pass:
                     flash("New passwords do not match.", "danger")
@@ -702,14 +709,14 @@ def settings():
     return render_template("admin/settings.html", sig_exists=sig_exists)
 
 
-# ---------------------------------------------------------------------------
-# Update Requests (Student requests for photo/hostel changes)
-# ---------------------------------------------------------------------------
+
+
+
 
 @admin_bp.route("/requests")
 @superadmin_required
 def update_requests():
-    """View all pending update requests."""
+    
     status_filter = request.args.get("status", "pending")
     reqs = UpdateRequest.query.filter_by(status=status_filter).order_by(UpdateRequest.created_at.desc()).all()
     return render_template("admin/requests.html", requests=reqs, current_filter=status_filter)
@@ -718,7 +725,7 @@ def update_requests():
 @admin_bp.route("/requests/<int:req_id>/approve", methods=["POST"])
 @superadmin_required
 def approve_request(req_id):
-    """Approve a student update request and apply changes."""
+    
     req = db.session.get(UpdateRequest, req_id)
     if not req or req.status != "pending":
         flash("Request not found or already processed.", "danger")
@@ -732,11 +739,11 @@ def approve_request(req_id):
     elif req.request_type == "hostel":
         user.hostel_name = req.new_value
     elif req.request_type == "deactivate":
-        # Deactivation logic (similar to delete student but marked as fraud)
+
         user.status = "inactive"
-        # Archive student IDs to allow for future re-registration if needed
-        # We don't overwrite user.student_id here unless we want to "archive" it.
-        # Let's keep it inactive but revoke the token.
+
+
+
         if user.token:
             from services.token_service import revoke_token
             revoke_token(user.id)
@@ -752,7 +759,7 @@ def approve_request(req_id):
 @admin_bp.route("/requests/<int:req_id>/reject", methods=["POST"])
 @superadmin_required
 def reject_request(req_id):
-    """Reject a student update request."""
+    
     req = db.session.get(UpdateRequest, req_id)
     if not req or req.status != "pending":
         flash("Request not found or already processed.", "danger")
@@ -762,7 +769,7 @@ def reject_request(req_id):
     req.rejection_note = request.form.get("rejection_note", "").strip() or None
     req.reviewed_at = datetime.utcnow()
 
-    # If it was a photo request, we can optionally delete the pending file to save space
+
     if req.request_type == "photo" and req.new_value:
         try:
             file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], req.new_value)
@@ -775,14 +782,14 @@ def reject_request(req_id):
     flash(f"Rejected {req.request_type} update for {req.user.name}.", "success")
     return redirect(url_for("admin.update_requests"))
 
-# ---------------------------------------------------------------------------
-# Registration Requests (New Student Applications)
-# ---------------------------------------------------------------------------
+
+
+
 
 @admin_bp.route("/registrations")
 @superadmin_required
 def registration_requests():
-    """View all pending student registration requests."""
+    
     status_filter = request.args.get("status", "pending")
     reqs = RegistrationRequest.query.filter_by(status=status_filter).order_by(RegistrationRequest.created_at.desc()).all()
     return render_template("admin/registrations.html", requests=reqs, current_filter=status_filter)
@@ -791,13 +798,13 @@ def registration_requests():
 @admin_bp.route("/registrations/<int:req_id>/approve", methods=["POST"])
 @superadmin_required
 def approve_registration(req_id):
-    """Approve a student registration, create a User, and generate QR."""
+    
     req = db.session.get(RegistrationRequest, req_id)
     if not req or req.status != "pending":
         flash("Registration request not found or already processed.", "danger")
         return redirect(url_for("admin.registration_requests"))
 
-    # Check for conflicts again just in case
+
     if User.query.filter_by(student_id=req.student_id).first():
         flash(f"Verification Failed: Roll Number {req.student_id} is already registered.", "danger")
         return redirect(url_for("admin.registration_requests"))
@@ -809,7 +816,7 @@ def approve_registration(req_id):
     validity_years = int(current_app.config.get("ID_VALIDITY_YEARS", 1))
 
     try:
-        # 1. Create User
+
         user = User(
             name=req.name,
             student_id=req.student_id,
@@ -829,16 +836,16 @@ def approve_registration(req_id):
             expiry_date=date.today() + timedelta(days=365 * validity_years)
         )
         db.session.add(user)
-        db.session.flush() # Get user.id
+        db.session.flush()
 
-        # 2. Generate Token
+
         token_obj = generate_token(user.id)
 
-        # 3. Send Email
+
         qr_bytes = generate_qr_image(token_obj.token, token_obj.hmac_signature)
         send_qr_email(user, qr_bytes)
 
-        # 4. Update Request Status
+
         req.status = "approved"
         req.reviewed_at = datetime.utcnow()
         
@@ -856,7 +863,7 @@ def approve_registration(req_id):
 @admin_bp.route("/registrations/<int:req_id>/reject", methods=["POST"])
 @superadmin_required
 def reject_registration(req_id):
-    """Reject a student registration application."""
+    
     req = db.session.get(RegistrationRequest, req_id)
     if not req or req.status != "pending":
         flash("Registration request not found or already processed.", "danger")
@@ -866,7 +873,7 @@ def reject_registration(req_id):
     req.rejection_note = request.form.get("rejection_note", "").strip() or None
     req.reviewed_at = datetime.utcnow()
 
-    # (Optional) Delete the photo file if it exists to save space
+
     if req.photo:
         try:
             file_path = os.path.join(current_app.config["UPLOAD_FOLDER"], req.photo)

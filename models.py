@@ -1,6 +1,3 @@
-"""
-SQLAlchemy database models.
-"""
 from datetime import datetime, date, timedelta
 from flask_login import UserMixin
 from extensions import db
@@ -10,7 +7,7 @@ from extensions import db
 
 
 class Admin(UserMixin, db.Model):
-    """Admin user for the management panel (Superadmin)."""
+    
     __tablename__ = "admins"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -20,13 +17,13 @@ class Admin(UserMixin, db.Model):
 
     @property
     def is_superadmin(self):
-        return True  # All admins are now superadmins
+        return True
 
     def __repr__(self):
         return f"<Admin {self.username}>"
 
 class Scanner(db.Model):
-    """Scanner user dedicated specifically for scanning QR codes at entry points."""
+    
     __tablename__ = "scanners"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -47,7 +44,7 @@ class Scanner(db.Model):
 
 
 class User(db.Model):
-    """Student / ID card holder."""
+    
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -57,44 +54,44 @@ class User(db.Model):
     department = db.Column(db.String(100), nullable=True)
     dob = db.Column(db.Date, nullable=True)
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    aadhar_number = db.Column(db.String(12), nullable=True)  # 12-digit Aadhar, not shown on ID card
+    aadhar_number = db.Column(db.String(12), nullable=True)
     father_name = db.Column(db.String(120), nullable=True)
     contact_number = db.Column(db.String(15), nullable=True)
-    blood_group = db.Column(db.String(5), nullable=True)  # e.g. A+, B-, O+, AB+
+    blood_group = db.Column(db.String(5), nullable=True)
     hostel_name = db.Column(db.String(100), nullable=True)
     home_address = db.Column(db.Text, nullable=True)
-    photo = db.Column(db.String(255), nullable=True)  # filename
-    photo_updated_at = db.Column(db.DateTime, nullable=True)  # when photo was last set
-    photo_warning_scans = db.Column(db.Integer, default=0, nullable=False, server_default="0")  # countdown scans shown
-    status = db.Column(db.String(10), nullable=False, default="active")  # active / inactive / expired
+    photo = db.Column(db.String(255), nullable=True)
+    photo_updated_at = db.Column(db.DateTime, nullable=True)
+    photo_warning_scans = db.Column(db.Integer, default=0, nullable=False, server_default="0")
+    status = db.Column(db.String(10), nullable=False, default="active")
     expiry_date = db.Column(db.Date, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
+
     token = db.relationship("Token", backref="user", uselist=False, cascade="all, delete-orphan")
     scan_logs = db.relationship("ScanLog", backref="user", lazy="dynamic", cascade="all, delete-orphan")
     update_requests = db.relationship("UpdateRequest", backref="user", lazy="dynamic", cascade="all, delete-orphan")
 
     @property
     def is_expired(self):
-        """Check if the ID card has expired."""
+        
         return date.today() > self.expiry_date
 
     @property
     def effective_status(self):
-        """Return the effective status, accounting for expiry."""
+        
         if self.status == "active" and self.is_expired:
             return "expired"
         return self.status
 
     @property
     def photo_needs_update(self):
-        """True if photo is missing OR older than 6 months."""
+        
         if not self.photo:
             return True
         if self.photo_updated_at is None:
-            return True  # legacy record with unknown upload date — treat as stale
+            return True
         return datetime.utcnow() - self.photo_updated_at > timedelta(days=180)
 
     def __repr__(self):
@@ -102,7 +99,7 @@ class User(db.Model):
 
 
 class Token(db.Model):
-    """Secure token linked to a user, embedded in QR codes."""
+    
     __tablename__ = "tokens"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -117,7 +114,7 @@ class Token(db.Model):
 
 
 class ScanLog(db.Model):
-    """Audit log for every QR scan / verification attempt."""
+    
     __tablename__ = "scan_logs"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -126,8 +123,8 @@ class ScanLog(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     ip_address = db.Column(db.String(45), nullable=True)
     user_agent = db.Column(db.String(512), nullable=True)
-    result = db.Column(db.String(20), nullable=False)  # success / invalid / expired / rate_limited
-    location = db.Column(db.String(120), nullable=True)  # scan location, e.g. "Library", "External"
+    result = db.Column(db.String(20), nullable=False)
+    location = db.Column(db.String(120), nullable=True)
     is_cross_hostel = db.Column(db.Boolean, nullable=False, default=False, server_default="0")
     cross_hostel_reason = db.Column(db.String(255), nullable=True)
 
@@ -136,23 +133,21 @@ class ScanLog(db.Model):
 
 
 class UpdateRequest(db.Model):
-    """Student-submitted request to update a profile field (photo or hostel name).
-    Changes are NOT applied directly — an admin must approve them.
-    """
+    
     __tablename__ = "update_requests"
 
     id          = db.Column(db.Integer, primary_key=True)
     user_id     = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
-    request_type = db.Column(db.String(20), nullable=False)          # "photo" | "hostel"
-    new_value   = db.Column(db.String(255), nullable=True)           # pending photo filename OR new hostel name
-    status      = db.Column(db.String(20), default="pending", nullable=False)  # pending | approved | rejected
+    request_type = db.Column(db.String(20), nullable=False)
+    new_value   = db.Column(db.String(255), nullable=True)
+    status      = db.Column(db.String(20), default="pending", nullable=False)
     rejection_note = db.Column(db.String(255), nullable=True)
-    reporter_info = db.Column(db.String(120), nullable=True)         # info about the reporter (e.g. scanner location)
+    reporter_info = db.Column(db.String(120), nullable=True)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
     reviewed_at = db.Column(db.DateTime, nullable=True)
 
 class RegistrationRequest(db.Model):
-    """Pending student application for a new digital ID card."""
+    
     __tablename__ = "registration_requests"
 
     id = db.Column(db.Integer, primary_key=True)
@@ -168,9 +163,9 @@ class RegistrationRequest(db.Model):
     blood_group = db.Column(db.String(5), nullable=True)
     hostel_name = db.Column(db.String(100), nullable=True)
     home_address = db.Column(db.Text, nullable=True)
-    photo = db.Column(db.String(255), nullable=True)  # pending photo filename
+    photo = db.Column(db.String(255), nullable=True)
     
-    status = db.Column(db.String(20), default="pending", nullable=False)  # pending | approved | rejected
+    status = db.Column(db.String(20), default="pending", nullable=False)
     rejection_note = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     reviewed_at = db.Column(db.DateTime, nullable=True)

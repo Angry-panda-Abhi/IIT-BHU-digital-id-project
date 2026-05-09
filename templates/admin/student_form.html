@@ -142,6 +142,9 @@
                     </div>
                     <input type="file" name="photo" accept=".jpg,.jpeg,.png" id="photo-input">
                 </div>
+                <small class="text-muted" style="font-size: 0.85rem; display: block; margin-top: 6px;">
+                    Please upload a clear passport-style photo with exactly one face visible.
+                </small>
                 {% if student and student.photo %}
                 <div class="mt-sm" style="display:flex; align-items:center; gap: 8px;">
                     <img src="{{ photo_url(student.photo) }}"

@@ -1,7 +1,3 @@
-"""
-Seed script – create the default admin account.
-Run:  python seed_admin.py
-"""
 import bcrypt
 from app import create_app
 from extensions import db

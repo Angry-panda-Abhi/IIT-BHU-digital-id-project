@@ -6,7 +6,7 @@ def run_migrations():
     with app.app_context():
         print("Starting production migration...")
         
-        # SQL commands to run
+
         migrations = [
             "ALTER TABLE scanners ADD COLUMN IF NOT EXISTS scanner_type VARCHAR(20) NOT NULL DEFAULT 'general'",
             "ALTER TABLE scanners ADD COLUMN IF NOT EXISTS assigned_hostel VARCHAR(120)",
@@ -14,8 +14,8 @@ def run_migrations():
             "ALTER TABLE scan_logs ADD COLUMN IF NOT EXISTS cross_hostel_reason VARCHAR(255)"
         ]
         
-        # Note: 'IF NOT EXISTS' works in Postgres 9.6+, but not in standard SQLite ALTER TABLE.
-        # However, Render uses Postgres, and locally we already migrated.
+
+
         
         for sql in migrations:
             try:
@@ -24,7 +24,7 @@ def run_migrations():
                 print(f"Executed: {sql}")
             except Exception as e:
                 db.session.rollback()
-                # Handle cases where column already exists (SQLAlchemy might still throw if IF NOT EXISTS isn't supported)
+
                 if "already exists" in str(e).lower() or "duplicate column" in str(e).lower():
                     print(f"Skipping (already exists): {sql}")
                 else:

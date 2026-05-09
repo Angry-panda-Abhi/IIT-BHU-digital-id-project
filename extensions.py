@@ -1,7 +1,3 @@
-"""
-Shared Flask extension instances.
-Initialized here to avoid circular imports; attached to the app in app.py.
-"""
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_limiter import Limiter

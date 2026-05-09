@@ -1,6 +1,3 @@
-"""
-Scanner routes – dedicated room for QR verification terminals.
-"""
 from datetime import datetime
 from functools import wraps
 import csv
@@ -18,7 +15,7 @@ from models import Scanner, ScanLog
 scanner_bp = Blueprint("scanner", __name__, url_prefix="/scanner")
 
 def scanner_required(f):
-    """Decorator: requires the user to be logged in via the isolated Scanner session."""
+    
     @wraps(f)
     def decorated(*args, **kwargs):
         if getattr(g, 'active_scanner', None):
@@ -30,7 +27,7 @@ def scanner_required(f):
 @scanner_bp.route("/login", methods=["GET", "POST"])
 @limiter.limit("5 per minute")
 def login():
-    """Isolated login page exclusively for Scanner accounts."""
+    
     if getattr(g, 'active_scanner', None):
         return redirect(url_for("scanner.dashboard"))
 
@@ -50,7 +47,7 @@ def login():
 
 @scanner_bp.route("/logout")
 def logout():
-    """Terminal logout sequence for this specific Scanner room."""
+    
     session.pop("scanner_auth_id", None)
     flash("Scanner session ended.", "info")
     return redirect(url_for("index"))
@@ -58,7 +55,7 @@ def logout():
 @scanner_bp.route("/dashboard")
 @scanner_required
 def dashboard():
-    """Isolated dashboard for the active scanner."""
+    
     active_scanner = getattr(g, 'active_scanner')
         
     today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -72,13 +69,13 @@ def dashboard():
 @scanner_bp.route("/scan")
 @scanner_required
 def scan():
-    """Web-based QR scanner room."""
+    
     return render_template("scanner/scan.html")
 
 @scanner_bp.route("/scan-logs")
 @scanner_required
 def scan_logs():
-    """Scan logs limited to this specific scanner's location."""
+    
     page = request.args.get("page", 1, type=int)
     active_scanner = getattr(g, 'active_scanner')
 
@@ -90,7 +87,7 @@ def scan_logs():
 @scanner_bp.route("/scan-logs/export")
 @scanner_required
 def export_scan_logs():
-    """Export Scan Logs strictly for this scanner's location."""
+    
     active_scanner = getattr(g, 'active_scanner')
     logs = ScanLog.query.filter_by(location=active_scanner.location_name).order_by(ScanLog.timestamp.desc()).all()
     
@@ -124,7 +121,7 @@ def export_scan_logs():
 @scanner_bp.route("/submit-reason", methods=["POST"])
 @scanner_required
 def submit_reason():
-    """Submit a reason for cross-hostel entry."""
+    
     log_id = request.form.get("scan_log_id")
     reason = request.form.get("reason", "").strip()
 
@@ -146,7 +143,7 @@ def submit_reason():
 @scanner_bp.route("/report-fraud", methods=["POST"])
 @scanner_required
 def report_fraud():
-    """Submit a request to deactivate a student ID (fraud report)."""
+    
     from models import UpdateRequest
     user_id = request.form.get("user_id")
     reason = request.form.get("reason", "").strip()
@@ -156,7 +153,7 @@ def report_fraud():
         flash("Reason is mandatory for fraud reporting.", "danger")
         return redirect(request.referrer or url_for("scanner.dashboard"))
 
-    # Create deactivation request
+
     req = UpdateRequest(
         user_id=user_id,
         request_type="deactivate",

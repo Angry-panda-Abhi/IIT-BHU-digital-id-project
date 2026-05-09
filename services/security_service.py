@@ -1,6 +1,3 @@
-"""
-Security service – scan logging and anomaly detection.
-"""
 from datetime import datetime, timedelta
 from flask import request as flask_request
 from extensions import db
@@ -8,10 +5,7 @@ from models import ScanLog
 
 
 def log_scan(user_id, token_used, result, location="External"):
-    """
-    Record a verification scan attempt.
-    location: Where the scan happened (e.g. "Library Gate 1", "External").
-    """
+    
     entry = ScanLog(
         user_id=user_id,
         token_used=token_used,
@@ -27,10 +21,7 @@ def log_scan(user_id, token_used, result, location="External"):
 
 
 def detect_anomaly(token_value: str) -> dict:
-    """
-    Check for suspicious scan patterns on a given token.
-    Returns a dict with flags.
-    """
+    
     window = datetime.utcnow() - timedelta(minutes=5)
     recent_scans = ScanLog.query.filter(
         ScanLog.token_used == token_value,
@@ -49,9 +40,7 @@ def detect_anomaly(token_value: str) -> dict:
 
 
 def get_scan_stats():
-    """
-    Return aggregate scan statistics for the admin dashboard.
-    """
+    
     now = datetime.utcnow()
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
