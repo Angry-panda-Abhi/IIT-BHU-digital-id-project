@@ -6,6 +6,7 @@ venv/
 .venv/
 env/
 .env
+.env.example
 
 # Flask / Database
 instance/
